@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ExerciseAI v15.0 — HCL Healthcare</title>
+<title>ExerciseAI v15.1 — HCL Healthcare</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -158,7 +158,7 @@ body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:#eaeff5
   </div>
   <div class="hdr-right">
     <span class="hdr-tag" id="exTag">SELECT EXERCISE</span>
-    <span class="hdr-tag">v15.0</span>
+    <span class="hdr-tag">v15.1</span>
     <button class="hdr-voice" id="voiceBtn" onclick="toggleVoice()" title="Toggle voice">🔊</button>
   </div>
 </div>
@@ -243,12 +243,12 @@ body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:#eaeff5
     </div>
   </div>
 
-  <div class="sec"><div class="sec-label">Debug Log</div><div class="log" id="log">v15.0 ready.<br></div></div>
+  <div class="sec"><div class="sec-label">Debug Log</div><div class="log" id="log">v15.1 ready.<br></div></div>
 </div>
 </div>
 
 <div class="ftr">
-  <div class="ftr-left">ExerciseAI v15.0 · HCL Healthcare Digital Therapy</div>
+  <div class="ftr-left">ExerciseAI v15.1 · HCL Healthcare Digital Therapy</div>
   <div class="ftr-right">Multi-Exercise · Data-Validated · On-Device</div>
 </div>
 </div>
@@ -268,122 +268,162 @@ body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:#eaeff5
 const EX_DB = {
   squat: {
     name:'Squat', icon:'🏋️', reps:728,
-    primaryKey:'knee', // angle that triggers rep detection (descends at bottom)
-    standKey:'knee',   // angle to measure standing baseline
-    badKey:'torso',    // angle that indicates bad form (higher = worse)
-    badDir:'high',     // 'high' = bad when higher, 'low' = bad when lower
+    primaryKey:'knee',
+    standKey:'knee',
+    badKey:'torso',
+    badDir:'high',     // 'high' = bad when metric too high
+    repDir:'down',     // primary angle DECREASES during active phase
     depthLabel:'DEPTH',
     visCheck:[11,12,23,24,25,26,27,28],
+    // Thresholds: 728 reps (135 real + 593 synthetic), 70/30 weighting
     metrics:[
-      {key:'hip',   label:'Hip Flexion',      gold:{ideal:82,min:42,max:131},  weight:.25, scale:180},
-      {key:'knee',  label:'Knee Flexion',     gold:{ideal:81,min:37,max:135},  weight:.25, scale:180},
-      {key:'ankle', label:'Ankle Dorsiflex',  gold:{ideal:16,min:9,max:27},    weight:.15, scale:50},
-      {key:'torso', label:'Torso Lean',       gold:{ideal:35,min:25,max:45},   weight:.2,  scale:90},
-      {key:'valgus',label:'Knee Tracking',    gold:{ideal:0,min:-5,max:5,warnAt:10}, weight:.15, scale:30, isValgus:true},
+      {key:'hip',   label:'Hip Flexion',     gold:{ideal:82,min:42,max:131}, weight:.25, scale:180},
+      {key:'knee',  label:'Knee Flexion',    gold:{ideal:81,min:37,max:135}, weight:.25, scale:180},
+      {key:'ankle', label:'Ankle Dorsiflex', gold:{ideal:16,min:9,max:27},   weight:.15, scale:50},
+      {key:'torso', label:'Torso Lean',      gold:{ideal:35,min:25,max:45},  weight:.2,  scale:90},
+      {key:'valgus',label:'Knee Tracking',   gold:{ideal:0,min:-5,max:5,warnAt:10}, weight:.15, scale:30, isValgus:true},
     ],
-    calSteps:{
-      stand:'🧍 Stand Still (5s)',standDesc:'Recording neutral posture',
-      good:'✅ 5 Good Squats',goodDesc:'Full range, proper form',
-      bad:'❌ 3 Bad Lean Squats',badDesc:'Lean forward excessively',
-    },
+    calSteps:{stand:'🧍 Stand Still (5s)',standDesc:'Recording neutral posture',good:'✅ 5 Good Squats',goodDesc:'Full range, proper form',bad:'❌ 3 Bad Lean Squats',badDesc:'Lean forward excessively'},
+    // Tuned per-metric: knee/hip need responsiveness, ankle/valgus need stability
     filters:{hip:[1.5,0.01],knee:[1.5,0.01],ankle:[0.8,0.005],torso:[1.2,0.008],valgus:[0.6,0.004]},
+    repDetect:{descentTH:25,returnTH:15,minBetweenMs:2000,bottomRise:12,minRepMs:1200,minDepthDeg:30},
     joints:[11,12,23,24,25,26,27,28],
-    bones:[[11,23],[12,24],[23,24],[23,25],[24,26],[25,27],[26,28]],
-    spine:new Set(['11-23','12-24','23-24']),
+    bones:[[11,12],[11,23],[12,24],[23,24],[23,25],[24,26],[25,27],[26,28]],
+    spine:new Set(['11-12','11-23','12-24','23-24']),
     coachGood:['Keep it up!','Textbook technique!','Perfect depth!','Excellent form!','Nailing it!'],
     warnings:{torso:'⚠ STRAIGHTEN BACK',valgus:'⚠ KNEES OUT'},
+    coachCues:{
+      hip:{low:'Push hips further back — sit into a chair.',high:'Stop descent slightly earlier — hip over-compressed.'},
+      knee:{low:'Bend knees more — aim for thighs parallel.',high:'Don\'t go quite so deep — protect your joints.'},
+      ankle:{low:'Tight calves — try plates under heels.',high:'Knees too far forward — sit back into hips.'},
+      torso:{high:'Chest up! Show the logo on your shirt.'},
+      valgus:{high:'Push knees outward over your toes.'},
+    },
   },
   bicep_curl: {
     name:'Barbell Bicep Curl', icon:'💪', reps:3181,
     primaryKey:'elbow', standKey:'elbow', badKey:'torso', badDir:'high',
+    repDir:'down',    // elbow angle decreases as you curl up
     depthLabel:'CURL',
     visCheck:[11,12,13,14,15,16,23,24],
+    // 3,181 reps: 175 real (p50=16°, 3.9–110°) + 3,006 synthetic (p50=114°, 91–133°)
+    // 70/30 weighted: ideal=0.7*16+0.3*114=46, min=0.7*4+0.3*91=30, max=0.7*110+0.3*133=117
     metrics:[
-      {key:'elbow',   label:'Elbow Flexion',     gold:{ideal:46,min:30,max:120},  weight:.35, scale:180},
-      {key:'shoulder',label:'Shoulder Stability', gold:{ideal:15,min:5,max:28},    weight:.25, scale:60},
-      {key:'torso',   label:'Body Swing',         gold:{ideal:3,min:0,max:8},      weight:.25, scale:30},
-      {key:'wrist',   label:'Wrist Alignment',   gold:{ideal:22,min:5,max:55},    weight:.15, scale:90},
+      {key:'elbow',   label:'Elbow Flexion',     gold:{ideal:46,min:30,max:117},  weight:.35, scale:180},
+      // Real shoulder=11.5°(4.2–25), Synth=23.6°(11.3–28.4) → 70/30: ideal=15, min=6, max=26
+      {key:'shoulder',label:'Shoulder Stability', gold:{ideal:15,min:6,max:26},    weight:.25, scale:60},
+      // Real torso=1.1°(0.2–5.2), Synth=2.7°(0.6–5.3) → 70/30: ideal=2, min=0, max=5
+      {key:'torso',   label:'Body Swing',         gold:{ideal:2,min:0,max:5},      weight:.25, scale:30},
+      // Real wrist=12.1°(2.4–74), Synth=44.7°(30.3–55) → 70/30: ideal=22, min=11, max=68
+      {key:'wrist',   label:'Wrist Alignment',   gold:{ideal:22,min:11,max:68},    weight:.15, scale:90},
     ],
-    calSteps:{
-      stand:'🧍 Arms Extended (5s)',standDesc:'Hold arms straight at sides',
-      good:'✅ 5 Good Curls',goodDesc:'Controlled curl, no swing',
-      bad:'❌ 3 Swinging Curls',badDesc:'Swing your body to cheat',
-    },
+    calSteps:{stand:'🧍 Arms Extended (5s)',standDesc:'Hold arms straight at sides',good:'✅ 5 Good Curls',goodDesc:'Controlled curl, elbows pinned',bad:'❌ 3 Swinging Curls',badDesc:'Swing your body to cheat'},
     filters:{elbow:[1.5,0.01],shoulder:[1.0,0.008],torso:[1.2,0.008],wrist:[0.8,0.005]},
+    repDetect:{descentTH:20,returnTH:12,minBetweenMs:1500,bottomRise:10,minRepMs:800,minDepthDeg:20},
     joints:[11,12,13,14,15,16,23,24],
     bones:[[11,13],[13,15],[12,14],[14,16],[11,12],[11,23],[12,24],[23,24]],
     spine:new Set(['11-12','11-23','12-24','23-24']),
     coachGood:['Perfect curl!','Great control!','Strict form!','Solid rep!','No swing—excellent!'],
     warnings:{torso:'⚠ NO SWINGING'},
+    coachCues:{
+      elbow:{low:'Curl higher — bring the bar closer to shoulders.',high:'Control the descent — don\'t just drop.'},
+      shoulder:{high:'Pin your elbows to your sides — upper arm shouldn\'t move.'},
+      torso:{high:'Stop swinging! Brace your core, only forearms move.'},
+      wrist:{high:'Keep wrists neutral — don\'t curl them inward.'},
+    },
   },
   hammer_curl: {
     name:'Hammer Curl', icon:'🔨', reps:126,
     primaryKey:'elbow', standKey:'elbow', badKey:'torso', badDir:'high',
+    repDir:'down',
     depthLabel:'CURL',
     visCheck:[11,12,13,14,15,16,23,24],
+    // 126 reps (real only): elbow p50=82.3°(19.3–119.9°)
+    // No synthetic, so using real data directly with wider tolerance
     metrics:[
-      {key:'elbow',   label:'Elbow Flexion',     gold:{ideal:50,min:20,max:120},  weight:.35, scale:180},
-      {key:'shoulder',label:'Shoulder Stability', gold:{ideal:10,min:4,max:15},    weight:.25, scale:40},
+      {key:'elbow',   label:'Elbow Flexion',     gold:{ideal:82,min:19,max:120},  weight:.35, scale:180},
+      {key:'shoulder',label:'Shoulder Stability', gold:{ideal:10,min:4,max:14},    weight:.25, scale:40},
       {key:'torso',   label:'Body Swing',         gold:{ideal:2,min:0,max:6},      weight:.25, scale:30},
-      {key:'wrist',   label:'Wrist Alignment',   gold:{ideal:30,min:5,max:75},    weight:.15, scale:90},
+      {key:'wrist',   label:'Wrist Alignment',   gold:{ideal:30,min:5,max:76},    weight:.15, scale:90},
     ],
-    calSteps:{
-      stand:'🧍 Arms Extended (5s)',standDesc:'Hold arms straight, neutral grip',
-      good:'✅ 5 Good Hammer Curls',goodDesc:'Controlled curl, thumbs up',
-      bad:'❌ 3 Swinging Curls',badDesc:'Swing your body to cheat',
-    },
+    calSteps:{stand:'🧍 Arms Extended (5s)',standDesc:'Hold arms straight, neutral grip',good:'✅ 5 Good Hammer Curls',goodDesc:'Controlled curl, thumbs up',bad:'❌ 3 Swinging Curls',badDesc:'Swing your body to cheat'},
     filters:{elbow:[1.5,0.01],shoulder:[1.0,0.008],torso:[1.2,0.008],wrist:[0.8,0.005]},
+    repDetect:{descentTH:20,returnTH:12,minBetweenMs:1500,bottomRise:10,minRepMs:800,minDepthDeg:20},
     joints:[11,12,13,14,15,16,23,24],
     bones:[[11,13],[13,15],[12,14],[14,16],[11,12],[11,23],[12,24],[23,24]],
     spine:new Set(['11-12','11-23','12-24','23-24']),
     coachGood:['Solid hammer curl!','Great neutral grip!','Perfect control!','Strict form!','Clean rep!'],
     warnings:{torso:'⚠ NO SWINGING'},
+    coachCues:{
+      elbow:{low:'Curl higher — bring dumbbells to shoulder level.',high:'Don\'t let arms flare out.'},
+      shoulder:{high:'Pin elbows to sides — upper arms stay still.'},
+      torso:{high:'No body momentum! Brace core, isolate biceps.'},
+      wrist:{high:'Keep thumbs up — maintain neutral grip.'},
+    },
   },
   push_up: {
     name:'Push-up', icon:'🫸', reps:1177,
     primaryKey:'elbow', standKey:'elbow', badKey:'hipDev', badDir:'high',
+    repDir:'down',    // elbow angle decreases as you lower
     depthLabel:'PUSH',
-    visCheck:[11,12,13,14,15,16,23,24,27,28],
+    visCheck:[11,12,13,14,15,16,23,24],  // removed ankle—often not visible
+    // 1,177 reps: 97 real (elbow 71.7°, 58–150°) + 1,080 synthetic (71.1°, 22–116°)
+    // 70/30: ideal=72, min=0.7*58+0.3*22=47, max=0.7*150+0.3*116=140
     metrics:[
       {key:'elbow',   label:'Elbow Flexion',     gold:{ideal:72,min:47,max:140},  weight:.3,  scale:180},
-      {key:'bodyLine',label:'Body Alignment',     gold:{ideal:165,min:155,max:180},weight:.25, scale:180},
-      {key:'hipDev',  label:'Hip Sag/Pike',       gold:{ideal:10,min:0,max:20},    weight:.25, scale:90},
-      {key:'shoulder',label:'Shoulder Angle',     gold:{ideal:48,min:20,max:90},   weight:.2,  scale:180},
+      // Real bodyLine=169°(111–176°), Synth=155°(106–173°) → 70/30: ideal=165, min=109, max=175
+      {key:'bodyLine',label:'Body Alignment',     gold:{ideal:165,min:150,max:178},weight:.25, scale:180},
+      // Real hipDev=11°(4–69°), Synth=24.8°(7.3–74°) → 70/30: ideal=15, max=25
+      {key:'hipDev',  label:'Hip Sag/Pike',       gold:{ideal:15,min:0,max:25},    weight:.25, scale:90},
+      // Real shoulder=29°(17–108°), Synth=92°(46–141°) → 70/30: ideal=48, min=26, max=118
+      {key:'shoulder',label:'Shoulder Angle',     gold:{ideal:48,min:26,max:118},   weight:.2,  scale:180},
     ],
-    calSteps:{
-      stand:'🧘 Hold Plank (5s)',standDesc:'Arms extended, body straight',
-      good:'✅ 5 Good Push-ups',goodDesc:'Chest to ground, body straight',
-      bad:'❌ 3 Hip-Sag Push-ups',badDesc:'Let your hips drop/sag',
-    },
+    calSteps:{stand:'🧘 Hold Plank (5s)',standDesc:'Arms extended, body straight',good:'✅ 5 Good Push-ups',goodDesc:'Chest to ground, body straight',bad:'❌ 3 Hip-Sag Push-ups',badDesc:'Let your hips drop/sag'},
     filters:{elbow:[1.5,0.01],bodyLine:[0.8,0.005],hipDev:[0.8,0.005],shoulder:[1.2,0.008]},
+    repDetect:{descentTH:20,returnTH:12,minBetweenMs:1200,bottomRise:10,minRepMs:600,minDepthDeg:15},
     joints:[11,12,13,14,15,16,23,24,25,26,27,28],
     bones:[[11,13],[13,15],[12,14],[14,16],[11,12],[11,23],[12,24],[23,24],[23,25],[24,26],[25,27],[26,28]],
     spine:new Set(['11-12','11-23','12-24','23-24','23-25','24-26']),
     coachGood:['Perfect push-up!','Great depth!','Body stays straight!','Excellent form!','Strong rep!'],
     warnings:{hipDev:'⚠ HIPS SAGGING'},
+    coachCues:{
+      elbow:{low:'Go lower — chest should nearly touch ground.',high:'You\'re flaring elbows out too wide.'},
+      bodyLine:{low:'Hips are piking up — flatten your body.',high:''},
+      hipDev:{high:'Hips sagging! Tighten your core — straight line head to heels.'},
+      shoulder:{high:'Tuck elbows closer to body — 45° angle.'},
+    },
   },
   shoulder_press: {
     name:'Shoulder Press', icon:'🏋️‍♂️', reps:2131,
     primaryKey:'elbow', standKey:'elbow', badKey:'torso', badDir:'high',
+    repDir:'up',      // ← CRITICAL: elbow angle INCREASES as you press overhead
     depthLabel:'PRESS',
     visCheck:[11,12,13,14,15,16,23,24],
+    // 2,131 reps: 360 real (elbow 54.5°, 16–113°) + 1,771 synthetic (75°, 40–115°)
+    // 70/30 weighted: ideal=0.7*55+0.3*75=61, min=0.7*16+0.3*40=23, max=0.7*113+0.3*115=114
     metrics:[
       {key:'elbow',   label:'Elbow Flexion',     gold:{ideal:61,min:23,max:114},  weight:.3,  scale:180},
+      // Real shoulderAbd=74.6°(20–127°), Synth=93.8°(50–125°) → 70/30: ideal=80, min=29, max=126
       {key:'shoulderAbd',label:'Shoulder Abduction',gold:{ideal:80,min:29,max:126}, weight:.25, scale:180},
-      {key:'torso',   label:'Torso Lean',         gold:{ideal:2,min:0,max:10},     weight:.25, scale:30},
+      // Real torso=2.3°(0.3–10.5°), Synth=1.2°(0–3.4°) → 70/30: ideal=2, min=0, max=8
+      {key:'torso',   label:'Torso Lean',         gold:{ideal:2,min:0,max:8},      weight:.25, scale:30},
       {key:'lockout', label:'Lockout',            gold:{ideal:1,min:0,max:1},      weight:.2,  scale:1},
     ],
-    calSteps:{
-      stand:'🧍 Weights at Shoulders (5s)',standDesc:'Hold start position',
-      good:'✅ 5 Good Presses',goodDesc:'Full extension overhead',
-      bad:'❌ 3 Leaning Presses',badDesc:'Lean back excessively',
-    },
+    calSteps:{stand:'🧍 Weights at Shoulders (5s)',standDesc:'Hold elbows bent, weights at shoulders',good:'✅ 5 Good Presses',goodDesc:'Full lockout overhead',bad:'❌ 3 Leaning Presses',badDesc:'Lean back excessively'},
     filters:{elbow:[1.5,0.01],shoulderAbd:[1.0,0.008],torso:[1.2,0.008],lockout:[0.6,0.004]},
+    // Shoulder press: larger thresholds since ROM is big (90° → 170°)
+    repDetect:{descentTH:30,returnTH:15,minBetweenMs:1500,bottomRise:12,minRepMs:800,minDepthDeg:25},
     joints:[11,12,13,14,15,16,23,24],
     bones:[[11,13],[13,15],[12,14],[14,16],[11,12],[11,23],[12,24],[23,24]],
     spine:new Set(['11-12','11-23','12-24','23-24']),
     coachGood:['Full lockout!','Great press!','Solid overhead!','Strict form!','Strong rep!'],
     warnings:{torso:'⚠ STOP LEANING BACK'},
+    coachCues:{
+      elbow:{low:'Press all the way up — full arm extension.',high:'Lower weights back to shoulders between reps.'},
+      shoulderAbd:{low:'Elbows too narrow — flare out to 90°.',high:'Elbows flaring too wide — tuck slightly.'},
+      torso:{high:'Stop leaning back! Brace your core, stay upright.'},
+      lockout:{low:'Lock out fully at the top of each press.'},
+    },
   },
 };
 
@@ -462,7 +502,7 @@ let TH=null,SD=null;
 let calMode=null,calFrames=[],calGoodValleys=[],calBadValleys=[];
 let calGoodCount=0,calBadCount=0;
 let phase='standing',smoothPrimary=177,holdC=0,repCount=0,goodReps=0,rejReps=0;
-let repStart=0,minDepthP=180,repErrors=[];
+let repStart=0,minDepthP=180,maxDepthP=0,repErrors=[];
 let repMaxHipY=0,repPostSum=0,repPostN=0,repBadN=0,repMaxBadMetric=0;
 let repBioMin={};
 let smoothPosture=100,lastCoachUpdate=0,lastCoachSpeak=0;
@@ -470,25 +510,38 @@ let repScores=[];
 let trackingStartTime=0;
 
 // ═══ CALIBRATION DETECTOR (state machine) ═══
+// Handles both directions: 'down' (squat/curl/pushup) and 'up' (shoulder press)
 const CalDetector={
-  state:'WAITING',deepest:999,deepestFrame:null,enteredBottomTime:0,lastCompletedTime:0,
-  MIN_BOTTOM_HOLD_MS:200,MIN_BETWEEN_MS:2000,DESCENT_TH:25,RETURN_TH:15,
-  reset(){this.state='WAITING';this.deepest=999;this.deepestFrame=null;this.enteredBottomTime=0;this.lastCompletedTime=0},
+  state:'WAITING',extreme:null,extremeFrame:null,enteredBottomTime:0,lastCompletedTime:0,
+  reset(){this.state='WAITING';this.extreme=null;this.extremeFrame=null;this.enteredBottomTime=0;this.lastCompletedTime=0},
   update(frame,standingVal){
     const k=frame[curDB.primaryKey];const now=Date.now();
-    const dipTh=standingVal-this.DESCENT_TH;const retTh=standingVal-this.RETURN_TH;
+    const rd=curDB.repDetect||{};
+    const descTH=rd.descentTH||25;const retTH=rd.returnTH||15;const minBtw=rd.minBetweenMs||2000;const botRise=rd.bottomRise||12;
+    const up=curDB.repDir==='up';
+
+    // For 'down': dipTh = standing - descent, extreme = minimum
+    // For 'up': dipTh = standing + descent, extreme = maximum
+    const dipTh=up?standingVal+descTH:standingVal-descTH;
+    const retTh=up?standingVal+retTH:standingVal-retTH;
+    const pastDip=up?k>dipTh:k<dipTh;
+    const pastReturn=up?k<=retTh:k>=retTh;
+    const moreExtreme=up?k>this.extreme:k<this.extreme;
+    const reversed=up?k<this.extreme-botRise:k>this.extreme+botRise;
+
     switch(this.state){
-      case'WAITING':if(k<dipTh){this.state='DESCENDING';this.deepest=k;this.deepestFrame={...frame};log('⬇ Descent ('+curDB.primaryKey+'='+Math.round(k)+'°)')}break;
+      case'WAITING':
+        if(pastDip){this.state='DESCENDING';this.extreme=k;this.extremeFrame={...frame};log('⬇ Active phase ('+curDB.primaryKey+'='+Math.round(k)+'°)')}break;
       case'DESCENDING':
-        if(k<this.deepest){this.deepest=k;this.deepestFrame={...frame}}
-        if(k>this.deepest+12){this.state='AT_BOTTOM';this.enteredBottomTime=now;log('⏸ Bottom ('+Math.round(this.deepest)+'°)')}
-        if(k>retTh){this.state='WAITING';this.deepest=999}break;
+        if(moreExtreme){this.extreme=k;this.extremeFrame={...frame}}
+        if(reversed){this.state='AT_BOTTOM';this.enteredBottomTime=now;log('⏸ Peak reached ('+Math.round(this.extreme)+'°)')}
+        if(pastReturn){this.state='WAITING';this.extreme=null}break;
       case'AT_BOTTOM':
-        if(k>=retTh){
-          if(now-this.lastCompletedTime<this.MIN_BETWEEN_MS){log('⏳ Too fast');this.state='WAITING';this.deepest=999;break}
-          const v=this.deepestFrame;
-          if(v){this.lastCompletedTime=now;this.state='WAITING';this.deepest=999;this.deepestFrame=null;log('✅ Rep completed! '+curDB.primaryKey+'='+Math.round(v[curDB.primaryKey])+'°');return v}
-          else{this.state='WAITING';this.deepest=999}
+        if(pastReturn){
+          if(now-this.lastCompletedTime<minBtw){log('⏳ Too fast');this.state='WAITING';this.extreme=null;break}
+          const v=this.extremeFrame;
+          if(v){this.lastCompletedTime=now;this.state='WAITING';this.extreme=null;this.extremeFrame=null;log('✅ Rep completed! '+curDB.primaryKey+'='+Math.round(v[curDB.primaryKey])+'°');return v}
+          else{this.state='WAITING';this.extreme=null}
         }break;
     }return null;
   }
@@ -670,24 +723,40 @@ function onCalValley(v){
 function computeTH(){
   setCS(4);
   const avg=a=>a.reduce((s,v)=>s+v,0)/a.length;
-  const mn=a=>Math.min(...a);const mx=a=>Math.max(...a);
+  const mn=a=>Math.min(...a);const mxA=a=>Math.max(...a);
   const pk=curDB.primaryKey;const bk=curDB.badKey;
+  const up=curDB.repDir==='up';
+  const rd=curDB.repDetect||{};
 
   const gP=calGoodValleys.map(f=>f[pk]);
   const gB=calGoodValleys.map(f=>f[bk]||0);
   const bB=calBadValleys.map(f=>f[bk]||0);
-  const maxGB=mx(gB),minBB=mn(bB);const badGap=curDB.badDir==='high'?minBB-maxGB:maxGB-minBB;
+  const maxGB=mxA(gB),minBB=mn(bB);const badGap=curDB.badDir==='high'?minBB-maxGB:maxGB-minBB;
 
-  TH={
-    down:Math.round(SD[pk]-(SD[pk]-mx(gP))*0.4),
-    bottom:Math.round(avg(gP)+10),
-    up:Math.round(SD[pk]-15),
-    maxBad:curDB.badDir==='high'?Math.round(badGap>2?maxGB+badGap*0.35:maxGB+5):Math.round(badGap>2?maxGB-badGap*0.35:maxGB-5),
-    minHipD:0.04,badPct:badGap>8?30:badGap>4?25:20,hold:6,alpha:0.25,minRepMs:1200
-  };
-  log('TH: down='+TH.down+' bot='+TH.bottom+' up='+TH.up+' maxBad='+TH.maxBad);
+  if(up){
+    // Shoulder press: primary goes UP. Standing=low, peak=high.
+    const maxGP=mxA(gP); // Highest elbow angle in good reps
+    TH={
+      down:Math.round(SD[pk]+(maxGP-SD[pk])*0.3),   // trigger: 30% above standing
+      bottom:Math.round(maxGP-10),                    // target peak zone
+      up:Math.round(SD[pk]+15),                       // return to near standing
+      maxBad:Math.round(badGap>2?maxGB+badGap*0.35:maxGB+5),
+      minHipD:0.04,badPct:badGap>8?30:badGap>4?25:20,hold:6,alpha:0.25,minRepMs:rd.minRepMs||800
+    };
+  }else{
+    // Squat/curl/pushup: primary goes DOWN. Standing=high, valley=low.
+    const maxGP=mxA(gP); // Highest (shallowest) good rep valley
+    TH={
+      down:Math.round(SD[pk]-(SD[pk]-maxGP)*0.4),
+      bottom:Math.round(avg(gP)+10),
+      up:Math.round(SD[pk]-15),
+      maxBad:curDB.badDir==='high'?Math.round(badGap>2?maxGB+badGap*0.35:maxGB+5):Math.round(badGap>2?maxGB-badGap*0.35:maxGB-5),
+      minHipD:0.04,badPct:badGap>8?30:badGap>4?25:20,hold:6,alpha:0.25,minRepMs:rd.minRepMs||1200
+    };
+  }
+  log('TH: down='+TH.down+' bot='+TH.bottom+' up='+TH.up+' maxBad='+TH.maxBad+' dir='+curDB.repDir);
   try{localStorage.setItem('exai_cal_'+curEx,JSON.stringify({sd:SD,th:TH,ts:Date.now()}))}catch(e){}
-  setCI('✅ Calibrated! '+bk+'≤'+TH.maxBad+'° depth≤'+TH.bottom+'°','done');
+  setCI('✅ Calibrated! '+bk+'≤'+TH.maxBad+'° target≤'+TH.bottom+'°','done');
   $('calCD').textContent='🎯';$('cs4s').textContent='✓';setCS(4,'done');$('calProg').style.width='100%';
   Speech.calSpeak('Calibration complete. Start '+curDB.name+' whenever ready.');
   showFB('✅ Calibrated — start exercising!','good');
@@ -698,7 +767,7 @@ function activateTracking(){
   calMode=null;
   $('calSec').style.display='none';$('repSec').style.display='block';$('ctrlSec').style.display='block';
   $('depthGauge').style.display='block';document.querySelector('.form-ring').style.display='block';
-  phase='standing';smoothPrimary=SD?SD[curDB.primaryKey]:177;holdC=0;repCount=0;goodReps=0;rejReps=0;repScores=[];
+  phase='standing';smoothPrimary=SD?SD[curDB.primaryKey]:177;holdC=0;repCount=0;goodReps=0;rejReps=0;repScores=[];minDepthP=180;maxDepthP=0;
   trackingStartTime=Date.now();$('repHist').innerHTML='';
 }
 
@@ -727,16 +796,27 @@ function log(m){console.log('[ExAI]',m);LOG.innerHTML+=m+'<br>';LOG.scrollTop=LO
 // ═══ COACHING ═══
 function evaluateBio(angles,isBot){
   const issues=[];if(!curDB)return issues;
+  const cues=curDB.coachCues||{};
   for(const m of curDB.metrics){
     const v=angles[m.key];const g=m.gold;if(v===undefined)continue;
     const val=m.isValgus?Math.abs(v):v;
-    if(isBot||m.key===curDB.badKey){
+    if(isBot||m.key===curDB.badKey||m.key==='torso'){
       if(m.isValgus){
-        if(val>g.warnAt)issues.push({metric:m.key,severity:'flag',what:m.label+' excessive ('+Math.round(val)+'°)',why:'Beyond safe range.',fix:'Correct alignment.',priority:1});
-        else if(val>g.max)issues.push({metric:m.key,severity:'warn',what:m.label+' slight drift ('+Math.round(val)+'°)',why:'Watch under load.',fix:'Maintain alignment.',priority:3});
+        if(val>g.warnAt){
+          const cue=cues[m.key]?.high||'Correct alignment.';
+          issues.push({metric:m.key,severity:'flag',what:m.label+' excessive ('+Math.round(val)+'°)',why:'Beyond safe range from dataset.',fix:cue,priority:1});
+        }else if(val>g.max){
+          const cue=cues[m.key]?.high||'Maintain alignment.';
+          issues.push({metric:m.key,severity:'warn',what:m.label+' slight drift ('+Math.round(val)+'°)',why:'Watch under load.',fix:cue,priority:3});
+        }
       }else{
-        if(val<g.min)issues.push({metric:m.key,severity:'flag',what:m.label+' too low ('+Math.round(val)+'°)',why:'Below dataset range.',fix:'Increase range of motion.',priority:1});
-        else if(val>g.max)issues.push({metric:m.key,severity:'flag',what:m.label+' too high ('+Math.round(val)+'°)',why:'Beyond safe range.',fix:'Reduce range of motion.',priority:2});
+        if(val<g.min){
+          const cue=cues[m.key]?.low||'Increase range of motion.';
+          issues.push({metric:m.key,severity:'flag',what:m.label+' too low ('+Math.round(val)+'°)',why:'Below range from '+curDB.reps+'-rep dataset.',fix:cue,priority:1});
+        }else if(val>g.max){
+          const cue=cues[m.key]?.high||'Reduce range of motion.';
+          issues.push({metric:m.key,severity:'flag',what:m.label+' too high ('+Math.round(val)+'°)',why:'Beyond safe range from '+curDB.reps+'-rep dataset.',fix:cue,priority:2});
+        }
       }
     }
   }
@@ -771,7 +851,7 @@ function getJointColor(val,gold){if(val>=gold.min&&val<=gold.max)return'#2e8b57'
 function drawAngleArc(cx,cy,startA,endA,radius,color){X.beginPath();X.arc(cx,cy,radius,startA,endA);X.strokeStyle=color;X.lineWidth=4;X.globalAlpha=0.6;X.stroke();X.globalAlpha=1}
 
 function exportData(){
-  const d={version:'exerciseai-v15.0',exercise:curEx,exerciseName:curDB.name,timestamp:new Date().toISOString(),standing:SD,thresholds:TH,gold:Object.fromEntries(curDB.metrics.map(m=>[m.key,m.gold])),datasetInfo:{source:curDB.reps+' reps from Riccardo Riccio dataset'},goodValleys:calGoodValleys,badValleys:calBadValleys,stats:{reps:repCount,good:goodReps,rejected:rejReps,scores:repScores}};
+  const d={version:'exerciseai-v15.1',exercise:curEx,exerciseName:curDB.name,timestamp:new Date().toISOString(),standing:SD,thresholds:TH,gold:Object.fromEntries(curDB.metrics.map(m=>[m.key,m.gold])),datasetInfo:{source:curDB.reps+' reps from Riccardo Riccio dataset'},goodValleys:calGoodValleys,badValleys:calBadValleys,stats:{reps:repCount,good:goodReps,rejected:rejReps,scores:repScores}};
   const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='exerciseai_'+curEx+'_'+Date.now()+'.json';a.click();
 }
 
@@ -807,7 +887,7 @@ function onRes(res){
 
   // Update bio cards
   const pk=curDB.primaryKey;
-  const isBot=phase==='bottom'||(TH&&angles[pk]<TH.bottom+15);
+  const isBot=phase==='bottom'||(TH&&(curDB.repDir==='up'?angles[pk]>TH.bottom-15:angles[pk]<TH.bottom+15));
   for(const m of curDB.metrics){
     const el=$('v_'+m.key);if(el)el.textContent=Math.round(angles[m.key])+'°';
     updateBioCard(m.key,angles[m.key],m.gold,m.scale);
@@ -834,7 +914,9 @@ function onRes(res){
 
   // Depth gauge
   if(TH&&SD){
-    const range=SD[pk]-TH.bottom;const current=SD[pk]-angles[pk];
+    const up=curDB.repDir==='up';
+    const range=up?TH.bottom-SD[pk]:SD[pk]-TH.bottom;
+    const current=up?angles[pk]-SD[pk]:SD[pk]-angles[pk];
     const pct=Math.max(0,Math.min(100,(current/range)*100));
     $('depthFill').style.height=pct+'%';
     $('depthFill').style.background=pct>=80?'#2e8b57':pct>=50?'#c49b2e':'rgba(255,255,255,0.3)';
@@ -919,20 +1001,25 @@ function onRes(res){
   if(!TH||calMode)return;
   if(Date.now()-trackingStartTime<3000)return;
   const T=TH;const pv=angles[pk];
+  const up=curDB.repDir==='up';
   smoothPrimary=T.alpha*pv+(1-T.alpha)*smoothPrimary;
-  const k=smoothPrimary;if(k<minDepthP)minDepthP=k;
+  const k=smoothPrimary;
+  // Track extreme: minimum for 'down', maximum for 'up'
+  if(up){if(k>maxDepthP)maxDepthP=k}else{if(k<minDepthP)minDepthP=k}
 
   if(phase!=='standing'){
     repPostSum+=ps;repPostN++;
-    if(badEx>0)repBadN++;if(angles[bk]>repMaxBadMetric)repMaxBadMetric=angles[bk];
+    if(curDB.badDir==='high'?badEx>0:badEx<0)repBadN++;
+    if(angles[bk]>repMaxBadMetric)repMaxBadMetric=angles[bk];
     if(raw.hipY>repMaxHipY)repMaxHipY=raw.hipY;
-    // Track bio mins/maxes
+    // Track bio extremes
     for(const m of curDB.metrics){
       const v=angles[m.key];
       if(repBioMin[m.key]===undefined)repBioMin[m.key]=v;
-      // For primary/depth metrics, track minimum; for bad metrics, track maximum
-      if(m.key===pk){if(v<repBioMin[m.key])repBioMin[m.key]=v}
-      else{if(v>repBioMin[m.key])repBioMin[m.key]=v}
+      if(m.key===pk){
+        if(up){if(v>repBioMin[m.key])repBioMin[m.key]=v}
+        else{if(v<repBioMin[m.key])repBioMin[m.key]=v}
+      }else{if(v>repBioMin[m.key])repBioMin[m.key]=v}
     }
     for(const iss of issues){
       if(iss.severity==='flag')repErrors.push({t:iss.metric,s:'high'});
@@ -945,12 +1032,19 @@ function onRes(res){
   const ppc={standing:['#e0e8f0','#8a96a8'],descending:['#fdf8ed','#c49b2e'],bottom:['#edf6f0','#2e8b57'],ascending:['#edf5fb','#0066AE']};
   const pp=$('pill');pp.textContent=phase.toUpperCase();pp.style.background=ppc[phase][0];pp.style.color=ppc[phase][1];
 
+  // Direction-aware comparisons
+  const pastDown=up?k>T.down:k<T.down;
+  const pastBot=up?k>=T.bottom:k<=T.bottom;
+  const pastUp=up?k<=T.up:k>=T.up;
+  const leftBot=up?k<T.bottom-8:k>T.bottom+8;
+  const backToBot=up?k>=T.bottom:k<T.bottom;
+
   const nowMs=Date.now();let done=null;
   switch(phase){
-    case'standing':if(k<T.down){if(++holdC>=T.hold){phase='descending';repStart=nowMs;minDepthP=k;repErrors=[];holdC=0;repMaxHipY=raw.hipY;repPostSum=0;repPostN=0;repBadN=0;repMaxBadMetric=0;repBioMin={}}}else holdC=0;break;
-    case'descending':if(k<=T.bottom){if(++holdC>=T.hold){phase='bottom';holdC=0}}else if(k>T.up){if(++holdC>=T.hold)done=finishRep(nowMs,false)}else holdC=0;break;
-    case'bottom':if(k>T.bottom+8){phase='ascending';holdC=0}break;
-    case'ascending':if(k>=T.up){if(++holdC>=T.hold)done=finishRep(nowMs,true)}else if(k<T.bottom){phase='bottom';holdC=0}else holdC=0;break;
+    case'standing':if(pastDown){if(++holdC>=T.hold){phase='descending';repStart=nowMs;minDepthP=k;maxDepthP=k;repErrors=[];holdC=0;repMaxHipY=raw.hipY;repPostSum=0;repPostN=0;repBadN=0;repMaxBadMetric=0;repBioMin={}}}else holdC=0;break;
+    case'descending':if(pastBot){if(++holdC>=T.hold){phase='bottom';holdC=0}}else if(pastUp){if(++holdC>=T.hold)done=finishRep(nowMs,false)}else holdC=0;break;
+    case'bottom':if(leftBot){phase='ascending';holdC=0}break;
+    case'ascending':if(pastUp){if(++holdC>=T.hold)done=finishRep(nowMs,true)}else if(backToBot){phase='bottom';holdC=0}else holdC=0;break;
   }
   if(done){$('repN').textContent=repCount;$('rGood').textContent=goodReps;$('rRej').textContent=rejReps}
 }
@@ -961,10 +1055,20 @@ function finishRep(now,full){
   const hipRise=repMaxHipY-(SD?SD.hipY:0.69);
   const repDuration=now-repStart;
   const pk=curDB.primaryKey;
+  const up=curDB.repDir==='up';
+  const rd=curDB.repDetect||{};
+  const minRepMs=rd.minRepMs||1200;
+  const minDepthDeg=rd.minDepthDeg||25;
 
-  if(repDuration<(TH.minRepMs||1200)){rejReps++;showFB('❌ Too fast','bad');resetRep();return'r'}
+  if(repDuration<minRepMs){rejReps++;showFB('❌ Too fast','bad');resetRep();return'r'}
   if(curEx==='squat'&&hipRise<TH.minHipD){rejReps++;showFB('❌ Hips didn\'t drop','bad');resetRep();return'r'}
-  if(SD&&minDepthP>SD[pk]-25){rejReps++;showFB('❌ Not deep enough','bad');Speech.coachSpeak('Go deeper.');resetRep();return'r'}
+  // Direction-aware depth check
+  const depthAchieved=up?maxDepthP-SD[pk]:SD[pk]-minDepthP;
+  if(SD&&depthAchieved<minDepthDeg){
+    rejReps++;showFB('❌ Not enough range of motion','bad');
+    Speech.coachSpeak(up?'Press higher.':'Go deeper.');
+    resetRep();return'r';
+  }
   if(badPct>TH.badPct){rejReps++;showFB('❌ Bad form — '+Math.round(badPct)+'%','bad');Speech.coachSpeak('Not counted. Fix form.');resetRep();return'r'}
   if(avgP<40){rejReps++;showFB('❌ Poor form','bad');resetRep();return'r'}
 
@@ -975,7 +1079,8 @@ function finishRep(now,full){
   if(!full)sc-=10;if(avgP<80)sc-=Math.round((80-avgP)*0.3);
   // Bonus for good primary metric
   const pkGold=curDB.metrics.find(m=>m.key===pk)?.gold;
-  if(pkGold&&repBioMin[pk]>=pkGold.min&&repBioMin[pk]<=pkGold.max)sc=Math.min(100,sc+3);
+  const pkExtreme=up?repBioMin[pk]:repBioMin[pk];
+  if(pkGold&&pkExtreme>=pkGold.min&&pkExtreme<=pkGold.max)sc=Math.min(100,sc+3);
   sc=Math.max(0,sc);if(sc>=70)goodReps++;
 
   repScores.push(sc);
@@ -991,11 +1096,11 @@ function finishRep(now,full){
   resetRep();return{n:repCount,sc};
 }
 
-function resetRep(){phase='standing';smoothPrimary=SD?SD[curDB.primaryKey]:177;holdC=0;minDepthP=180;repErrors=[];repMaxHipY=0;repPostSum=0;repPostN=0;repBadN=0;repMaxBadMetric=0;repBioMin={}}
+function resetRep(){phase='standing';smoothPrimary=SD?SD[curDB.primaryKey]:177;holdC=0;minDepthP=180;maxDepthP=0;repErrors=[];repMaxHipY=0;repPostSum=0;repPostN=0;repBadN=0;repMaxBadMetric=0;repBioMin={}}
 
 // ═══ INIT ═══
 buildExSelector();
-log('v15.0 ready. Select an exercise.');
+log('v15.1 ready. Select an exercise.');
 </script>
 </body>
 </html>
