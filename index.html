@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ExerciseAI v15.0 — HCL Healthcare</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js" crossorigin="anonymous"></script>
+<style>
+:root{
+  --blue:#0066AE;--blue-deep:#004d82;--navy:#0a2540;
+  --blue-soft:#4a9fd4;--blue-light:#7ab4da;--blue-pale:#edf5fb;--blue-wash:#f5f9fd;
+  --teal:#0d7377;--teal-pale:#edf7f7;
+  --green:#2e8b57;--green-pale:#edf6f0;--green-soft:#c3e5d0;
+  --amber:#c49b2e;--amber-pale:#fdf8ed;
+  --red:#c44040;--red-pale:#fdf2f2;
+  --ink:#1a2e42;--text:#4a5c6e;--muted:#8a96a8;--border:#e0e8f0;--border-light:#eef3f8;--white:#fff;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:#eaeff5;color:var(--ink);font-size:13px;-webkit-font-smoothing:antialiased}
+.app{max-width:1320px;margin:16px auto;background:var(--white);border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(0,102,174,0.1)}
+.hdr{background:linear-gradient(135deg,#0a2540 0%,var(--blue-deep) 40%,var(--blue) 100%);padding:20px 36px 16px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden}
+.hdr::before{content:'';position:absolute;top:-80%;right:-5%;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.05),transparent 70%)}
+.hdr-left{display:flex;align-items:center;gap:16px;z-index:1}
+.hdr-logo{font-family:'DM Serif Display',Georgia,serif;font-size:28px;color:#fff}
+.hdr-logo em{color:var(--blue-light);font-style:italic}
+.hdr-meta{display:flex;flex-direction:column;gap:1px}
+.hdr-org{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,0.35);font-weight:500}
+.hdr-sub{font-size:10px;color:rgba(255,255,255,0.5)}
+.hdr-right{display:flex;align-items:center;gap:10px;z-index:1}
+.hdr-tag{font-size:9px;letter-spacing:1px;padding:4px 10px;border-radius:4px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.08)}
+.hdr-voice{width:32px;height:32px;border-radius:6px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.15s}
+.hdr-voice:hover{background:rgba(255,255,255,0.12)}.hdr-voice.muted{opacity:0.35}
+.grad-bar{height:3px;background:linear-gradient(90deg,var(--blue),var(--teal),var(--green),var(--amber))}
+.main{display:flex;min-height:560px}
+.vid-col{flex:1;position:relative;background:#000;min-height:520px;display:flex;align-items:center;justify-content:center}
+.vid-col video{width:100%;height:100%;object-fit:contain;display:block;transform:scaleX(-1)}
+.vid-col canvas{position:absolute;top:0;left:0;pointer-events:none}
+
+/* SPLASH */
+.splash{position:absolute;inset:0;z-index:20;background:linear-gradient(135deg,#0a2540 0%,#0d3058 60%,var(--blue-deep) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;overflow-y:auto}
+.splash.gone{display:none}
+.splash-icon{font-size:44px;margin-bottom:12px}
+.splash h2{font-family:'DM Serif Display',Georgia,serif;font-size:28px;color:#fff;margin-bottom:4px}
+.splash h2 em{color:var(--blue-light)}
+.splash-desc{font-size:12px;color:rgba(255,255,255,0.4);max-width:420px;line-height:1.5;margin-bottom:18px}
+
+/* Exercise selector */
+.ex-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;max-width:540px;width:100%}
+.ex-card{padding:14px 8px;border-radius:14px;background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.06);cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:6px}
+.ex-card:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.12);transform:translateY(-2px)}
+.ex-card.selected{background:rgba(0,102,174,0.25);border-color:rgba(0,102,174,0.5);box-shadow:0 4px 20px rgba(0,102,174,0.3)}
+.ex-card-icon{font-size:28px}
+.ex-card-name{font-size:10px;font-weight:600;color:rgba(255,255,255,0.7)}
+.ex-card-reps{font-size:8px;color:rgba(255,255,255,0.3)}
+.splash-btn{padding:12px 36px;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--blue),var(--blue-deep));color:#fff;box-shadow:0 6px 24px rgba(0,102,174,0.4);transition:all 0.2s;margin-bottom:6px}
+.splash-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,102,174,0.5)}
+.splash-btn:disabled{opacity:0.3;cursor:not-allowed;transform:none}
+.splash-btn.sec{background:transparent;border:2px solid rgba(255,255,255,0.2);box-shadow:none;font-size:11px;padding:9px 28px}
+.splash-safety{font-size:8px;color:rgba(255,255,255,0.2);margin-top:8px}
+
+/* OVERLAYS */
+.fb{position:absolute;bottom:12px;left:12px;right:12px;z-index:10;display:flex;flex-direction:column;gap:4px;align-items:center}
+.fb div{padding:10px 18px;border-radius:12px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;animation:su .2s ease;box-shadow:0 4px 20px rgba(0,0,0,0.2);max-width:90%;text-align:center}
+.fb .good{background:rgba(46,139,87,0.94);color:#fff}
+.fb .bad{background:rgba(196,64,64,0.94);color:#fff}
+.fb .warn{background:rgba(196,155,46,0.94);color:#fff}
+.fb .info{background:rgba(0,102,174,0.94);color:#fff}
+@keyframes su{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.rep-flash{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:12;font-family:'DM Serif Display',Georgia,serif;font-size:80px;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,0.5);opacity:0;pointer-events:none}
+.rep-flash.show{animation:repPop 0.8s ease-out forwards}
+@keyframes repPop{0%{opacity:0;transform:translate(-50%,-50%) scale(0.3)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}40%{transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1) translateY(-30px)}}
+
+.depth-gauge{position:absolute;left:14px;top:50%;transform:translateY(-50%);z-index:8;width:30px;height:200px;border-radius:15px;background:rgba(0,0,0,0.5);border:2px solid rgba(255,255,255,0.1);overflow:hidden;display:none}
+.depth-gauge-fill{position:absolute;bottom:0;width:100%;border-radius:0 0 13px 13px;transition:height 0.12s,background 0.15s}
+.depth-gauge-label{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:8px;color:rgba(255,255,255,0.5);white-space:nowrap;font-weight:600}
+.depth-gauge-val{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:800;color:#fff;white-space:nowrap}
+.depth-target{position:absolute;width:100%;height:4px;background:rgba(46,139,87,0.6);left:0}
+.form-ring{position:absolute;top:14px;left:14px;z-index:8;display:none}
+
+/* PANEL */
+.panel{width:390px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;max-height:640px;scrollbar-width:thin;scrollbar-color:#c8d4e0 transparent}
+.panel::-webkit-scrollbar{width:4px}.panel::-webkit-scrollbar-thumb{background:#c8d4e0;border-radius:2px}
+.sec{padding:16px 20px;border-bottom:1px solid var(--border-light)}.sec:last-child{border-bottom:none}
+.sec-label{display:inline-flex;align-items:center;gap:7px;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin-bottom:8px}
+.sec-label::before{content:'';width:14px;height:2px;background:linear-gradient(90deg,var(--blue),var(--blue-soft));border-radius:1px}
+.btn{width:100%;padding:12px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s}
+.btn:disabled{opacity:0.3;cursor:not-allowed}.btn:active:not(:disabled){transform:scale(0.98)}
+.btn-go{background:linear-gradient(135deg,var(--blue),var(--blue-deep));color:#fff;box-shadow:0 4px 16px rgba(0,102,174,0.3)}
+.btn-cal{background:linear-gradient(135deg,var(--teal),#0a6060);color:#fff;box-shadow:0 3px 12px rgba(13,115,119,0.2);font-size:11px;padding:10px}
+.btn-sec{background:var(--blue-pale);color:var(--blue);border:1.5px solid #c0d8ee;font-size:11px;padding:9px}
+.btn-switch{background:var(--amber-pale);color:#8a6d00;border:1.5px solid #e0c870;font-size:11px;padding:9px}
+
+.rep-dash{text-align:center;padding:4px 0}
+.rep-big{font-family:'DM Serif Display',Georgia,serif;font-size:46px;color:var(--ink);line-height:1}
+.rep-lbl{font-size:10px;color:var(--muted);font-weight:500;margin-top:2px}
+.phase-pill{display:inline-block;padding:3px 12px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:1px;margin-top:4px}
+.rep-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+.rep-stat{text-align:center;padding:6px;background:var(--blue-wash);border-radius:8px}
+.rv{font-size:16px;font-weight:800}.rl{font-size:8px;color:var(--muted);font-weight:600;letter-spacing:0.5px}
+.rep-history{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.rep-badge{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff}
+.rep-badge.exc{background:#2e8b57}.rep-badge.ok{background:#5ba67d}.rep-badge.mid{background:#c49b2e}.rep-badge.low{background:#c44040}
+
+.bio-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bio-card{padding:10px 12px;border-radius:10px;border:1.5px solid var(--border-light);background:var(--white);transition:border-color 0.2s}
+.bio-card.ok{border-color:var(--green-soft);background:var(--green-pale)}
+.bio-card.warn{border-color:#e0c870;background:var(--amber-pale)}
+.bio-card.bad{border-color:#e0a0a0;background:var(--red-pale)}
+.bio-card.bio-full{grid-column:1/-1}
+.bio-top{display:flex;justify-content:space-between;align-items:center}
+.bio-lbl{font-size:10px;font-weight:600;color:var(--text)}
+.bio-val{font-size:14px;font-weight:800;font-family:'DM Sans',sans-serif;color:var(--ink)}
+.bio-range{font-size:8px;color:var(--muted);margin-top:2px}
+.bio-bar{height:4px;border-radius:2px;background:var(--border-light);margin-top:4px;position:relative;overflow:hidden}
+.bio-bar-ideal{position:absolute;top:0;height:100%;background:rgba(46,139,87,0.15);border-radius:2px}
+.bio-bar-fill{position:absolute;top:0;left:0;height:100%;border-radius:2px;transition:width 0.15s}
+
+.meter-box{margin-top:8px;padding:10px;background:var(--blue-wash);border-radius:10px}
+.meter-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.mk{font-size:10px;font-weight:600;color:var(--text)}.mv{font-size:14px;font-weight:800}
+.meter{height:6px;background:var(--border-light);border-radius:3px;overflow:hidden}.meter-fill{height:100%;border-radius:3px;transition:width 0.2s,background 0.2s}
+
+.coach-box{padding:14px;border-radius:12px;border:1.5px solid var(--border-light);transition:all 0.2s}
+.coach-box.good{border-color:var(--green-soft);background:var(--green-pale)}
+.coach-box.issue{border-color:#e0c870;background:var(--amber-pale)}
+.coach-top{font-size:12px;font-weight:700;margin-bottom:4px}
+.coach-msg{font-size:11px;color:var(--text);line-height:1.4}
+.coach-fix{font-size:10px;color:var(--muted);margin-top:4px;white-space:pre-line}
+.coach-encourage{font-size:10px;color:var(--green);margin-top:4px;font-weight:600}
+
+.cal-step{padding:8px 12px;border-radius:8px;border:1.5px solid var(--border-light);margin-bottom:6px;opacity:0.4;transition:all 0.2s}
+.cal-step h4{font-size:11px;font-weight:700}.cal-step p{font-size:9px;color:var(--muted)}.cal-step .st{font-size:10px;font-weight:700;color:var(--blue);margin-top:2px}
+.cal-step.active{opacity:1;border-color:var(--blue);background:var(--blue-pale)}
+.cal-step.done{opacity:1;border-color:var(--green-soft);background:var(--green-pale)}
+.cal-step.waiting{opacity:0.35}
+.instr{padding:10px;border-radius:8px;font-size:12px;font-weight:700;text-align:center;margin-top:6px}
+.instr.go{background:var(--blue-pale);color:var(--blue)}.instr.done{background:var(--green-pale);color:var(--green)}.instr.warn{background:var(--amber-pale);color:#8a6d00}
+.countdown{text-align:center;font-family:'DM Serif Display',Georgia,serif;font-size:48px;color:var(--blue);min-height:56px}
+.cal-progress{height:4px;background:var(--border-light);border-radius:2px;margin-top:8px;overflow:hidden}
+.cal-progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--teal));border-radius:2px;transition:width 0.3s}
+
+.log{font-family:'SF Mono',monospace;font-size:9px;color:var(--muted);max-height:120px;overflow-y:auto;line-height:1.5;padding:8px;background:var(--blue-wash);border-radius:8px}
+.ftr{display:flex;justify-content:space-between;align-items:center;padding:10px 24px;background:var(--blue-wash);border-top:1px solid var(--border-light)}
+.ftr-left{font-size:9px;color:var(--muted)}.ftr-right{font-size:9px;color:var(--muted)}
+
+@media(max-width:900px){.main{flex-direction:column}.panel{width:100%;max-height:none}.vid-col{min-height:380px}.ex-grid{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="hdr">
+  <div class="hdr-left">
+    <div><div class="hdr-logo">Exercise<em>AI</em></div><div class="hdr-meta"><span class="hdr-org">HCL Healthcare</span><span class="hdr-sub" id="hdrSub">Digital Therapy — Multi-Exercise Analysis</span></div></div>
+  </div>
+  <div class="hdr-right">
+    <span class="hdr-tag" id="exTag">SELECT EXERCISE</span>
+    <span class="hdr-tag">v15.0</span>
+    <button class="hdr-voice" id="voiceBtn" onclick="toggleVoice()" title="Toggle voice">🔊</button>
+  </div>
+</div>
+<div class="grad-bar"></div>
+
+<div class="main">
+<div class="vid-col">
+  <video id="v" playsinline muted></video>
+  <canvas id="c"></canvas>
+  <div class="fb" id="fb"></div>
+  <div class="rep-flash" id="repFlash"></div>
+  <div class="depth-gauge" id="depthGauge"><div class="depth-gauge-label">DEPTH</div><div class="depth-gauge-fill" id="depthFill"></div><div class="depth-gauge-val" id="depthVal">0%</div><div class="depth-target" style="bottom:80%"></div></div>
+  <div class="form-ring"><canvas id="formRing" width="80" height="80"></canvas></div>
+
+  <div class="splash" id="splash">
+    <div class="splash-icon">💪</div>
+    <h2>Exercise<em>AI</em></h2>
+    <div class="splash-desc">Clinical-grade biomechanical analysis with AI pose detection. Thresholds validated against 6,600+ reps from research datasets. All processing on-device.</div>
+
+    <div class="ex-grid" id="exGrid"></div>
+
+    <button class="splash-btn" id="startBtn" onclick="startCam()" disabled>▶ &nbsp; Start Session</button>
+    <button class="splash-btn sec" id="skipCalBtn" onclick="startCamSkip()" style="display:none">⚡ Skip Calibration</button>
+    <div class="splash-safety">🔒 Camera data never leaves your device</div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="sec" id="startSec" style="display:none"><button class="btn btn-go" onclick="startCam()">▶ Start Camera</button></div>
+
+  <div class="sec" id="calSec" style="display:none">
+    <div class="sec-label">Calibration</div>
+    <div class="cal-step waiting" id="cs1"><h4 id="cs1h">🧍 Hold Start Position (5s)</h4><p id="cs1p">Recording neutral posture</p><div class="st" id="cs1s"></div></div>
+    <div class="cal-step waiting" id="cs2"><h4 id="cs2h">✅ 5 Good Reps</h4><p id="cs2p">Full range, proper form</p><div class="st" id="cs2s"></div></div>
+    <div class="cal-step waiting" id="cs3"><h4 id="cs3h">❌ 3 Bad Form Reps</h4><p id="cs3p">Intentionally bad form</p><div class="st" id="cs3s"></div></div>
+    <div class="cal-step waiting" id="cs4"><h4>🎯 Compute Thresholds</h4><div class="st" id="cs4s"></div></div>
+    <div class="instr go" id="calInstr">Preparing...</div>
+    <div class="countdown" id="calCD"></div>
+    <div class="cal-progress"><div class="cal-progress-fill" id="calProg" style="width:0%"></div></div>
+  </div>
+
+  <div class="sec" id="repSec" style="display:none">
+    <div class="sec-label">Workout</div>
+    <div class="rep-dash">
+      <div class="rep-big" id="repN">0</div>
+      <div class="rep-lbl">Reps Counted</div>
+      <span class="phase-pill" id="pill" style="background:#e0e8f0;color:var(--muted)">STANDING</span>
+    </div>
+    <div class="rep-grid">
+      <div class="rep-stat"><div class="rv" style="color:var(--green)" id="rGood">0</div><div class="rl">Good</div></div>
+      <div class="rep-stat"><div class="rv" style="color:var(--red)" id="rRej">0</div><div class="rl">Rejected</div></div>
+      <div class="rep-stat"><div class="rv" id="rBad" style="color:var(--muted)">0%</div><div class="rl">Bad Form%</div></div>
+      <div class="rep-stat"><div class="rv" style="color:var(--blue)" id="rScore">—</div><div class="rl">Last Score</div></div>
+    </div>
+    <div class="rep-history" id="repHist"></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-label">Biomechanics</div>
+    <div class="bio-grid" id="bioGrid"></div>
+    <div class="meter-box">
+      <div class="meter-row"><span class="mk">Overall Form</span><span class="mv" id="mVal" style="color:var(--green)">100</span></div>
+      <div class="meter"><div class="meter-fill" id="mFill" style="width:100%;background:var(--green)"></div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-label">AI Coach</div>
+    <div class="coach-box" id="coachBox">
+      <div class="coach-top" id="coachTop">Ready</div>
+      <div class="coach-msg" id="coachMsg">Select an exercise and start a session.</div>
+      <div class="coach-fix" id="coachFix"></div>
+      <div class="coach-encourage" id="coachEnc"></div>
+    </div>
+  </div>
+
+  <div class="sec" id="ctrlSec" style="display:none">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-cal" style="flex:1" onclick="beginCal()">🎯 Recalibrate</button>
+      <button class="btn btn-sec" style="flex:1" onclick="exportData()">📊 Export</button>
+      <button class="btn btn-switch" style="flex-basis:100%" onclick="switchExercise()">🔄 Switch Exercise</button>
+    </div>
+  </div>
+
+  <div class="sec"><div class="sec-label">Debug Log</div><div class="log" id="log">v15.0 ready.<br></div></div>
+</div>
+</div>
+
+<div class="ftr">
+  <div class="ftr-left">ExerciseAI v15.0 · HCL Healthcare Digital Therapy</div>
+  <div class="ftr-right">Multi-Exercise · Data-Validated · On-Device</div>
+</div>
+</div>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════
+// EXERCISE DATABASE — Data-driven thresholds
+// Squat: 728 reps (135 real + 593 synthetic)
+// Bicep Curl: 3,181 reps (175 real + 3,006 synthetic)
+// Hammer Curl: 126 reps (real only)
+// Push-up: 1,177 reps (97 real + 1,080 synthetic)
+// Shoulder Press: 2,131 reps (360 real + 1,771 synthetic)
+// All combined with 70/30 real/synthetic weighting
+// ═══════════════════════════════════════════════════
+const EX_DB = {
+  squat: {
+    name:'Squat', icon:'🏋️', reps:728,
+    primaryKey:'knee', // angle that triggers rep detection (descends at bottom)
+    standKey:'knee',   // angle to measure standing baseline
+    badKey:'torso',    // angle that indicates bad form (higher = worse)
+    badDir:'high',     // 'high' = bad when higher, 'low' = bad when lower
+    depthLabel:'DEPTH',
+    visCheck:[11,12,23,24,25,26,27,28],
+    metrics:[
+      {key:'hip',   label:'Hip Flexion',      gold:{ideal:82,min:42,max:131},  weight:.25, scale:180},
+      {key:'knee',  label:'Knee Flexion',     gold:{ideal:81,min:37,max:135},  weight:.25, scale:180},
+      {key:'ankle', label:'Ankle Dorsiflex',  gold:{ideal:16,min:9,max:27},    weight:.15, scale:50},
+      {key:'torso', label:'Torso Lean',       gold:{ideal:35,min:25,max:45},   weight:.2,  scale:90},
+      {key:'valgus',label:'Knee Tracking',    gold:{ideal:0,min:-5,max:5,warnAt:10}, weight:.15, scale:30, isValgus:true},
+    ],
+    calSteps:{
+      stand:'🧍 Stand Still (5s)',standDesc:'Recording neutral posture',
+      good:'✅ 5 Good Squats',goodDesc:'Full range, proper form',
+      bad:'❌ 3 Bad Lean Squats',badDesc:'Lean forward excessively',
+    },
+    filters:{hip:[1.5,0.01],knee:[1.5,0.01],ankle:[0.8,0.005],torso:[1.2,0.008],valgus:[0.6,0.004]},
+    joints:[11,12,23,24,25,26,27,28],
+    bones:[[11,23],[12,24],[23,24],[23,25],[24,26],[25,27],[26,28]],
+    spine:new Set(['11-23','12-24','23-24']),
+    coachGood:['Keep it up!','Textbook technique!','Perfect depth!','Excellent form!','Nailing it!'],
+    warnings:{torso:'⚠ STRAIGHTEN BACK',valgus:'⚠ KNEES OUT'},
+  },
+  bicep_curl: {
+    name:'Barbell Bicep Curl', icon:'💪', reps:3181,
+    primaryKey:'elbow', standKey:'elbow', badKey:'torso', badDir:'high',
+    depthLabel:'CURL',
+    visCheck:[11,12,13,14,15,16,23,24],
+    metrics:[
+      {key:'elbow',   label:'Elbow Flexion',     gold:{ideal:46,min:30,max:120},  weight:.35, scale:180},
+      {key:'shoulder',label:'Shoulder Stability', gold:{ideal:15,min:5,max:28},    weight:.25, scale:60},
+      {key:'torso',   label:'Body Swing',         gold:{ideal:3,min:0,max:8},      weight:.25, scale:30},
+      {key:'wrist',   label:'Wrist Alignment',   gold:{ideal:22,min:5,max:55},    weight:.15, scale:90},
+    ],
+    calSteps:{
+      stand:'🧍 Arms Extended (5s)',standDesc:'Hold arms straight at sides',
+      good:'✅ 5 Good Curls',goodDesc:'Controlled curl, no swing',
+      bad:'❌ 3 Swinging Curls',badDesc:'Swing your body to cheat',
+    },
+    filters:{elbow:[1.5,0.01],shoulder:[1.0,0.008],torso:[1.2,0.008],wrist:[0.8,0.005]},
+    joints:[11,12,13,14,15,16,23,24],
+    bones:[[11,13],[13,15],[12,14],[14,16],[11,12],[11,23],[12,24],[23,24]],
+    spine:new Set(['11-12','11-23','12-24','23-24']),
+    coachGood:['Perfect curl!','Great control!','Strict form!','Solid rep!','No swing—excellent!'],
+    warnings:{torso:'⚠ NO SWINGING'},
+  },
+  hammer_curl: {
+    name:'Hammer Curl', icon:'🔨', reps:126,
+    primaryKey:'elbow', standKey:'elbow', badKey:'torso', badDir:'high',
+    depthLabel:'CURL',
+    visCheck:[11,12,13,14,15,16,23,24],
+    metrics:[
+      {key:'elbow',   label:'Elbow Flexion',     gold:{ideal:50,min:20,max:120},  weight:.35, scale:180},
+      {key:'shoulder',label:'Shoulder Stability', gold:{ideal:10,min:4,max:15},    weight:.25, scale:40},
+      {key:'torso',   label:'Body Swing',         gold:{ideal:2,min:0,max:6},      weight:.25, scale:30},
+      {key:'wrist',   label:'Wrist Alignment',   gold:{ideal:30,min:5,max:75},    weight:.15, scale:90},
+    ],
+    calSteps:{
+      stand:'🧍 Arms Extended (5s)',standDesc:'Hold arms straight, neutral grip',
+      good:'✅ 5 Good Hammer Curls',goodDesc:'Controlled curl, thumbs up',
+      bad:'❌ 3 Swinging Curls',badDesc:'Swing your body to cheat',
+    },
+    filters:{elbow:[1.5,0.01],shoulder:[1.0,0.008],torso:[1.2,0.008],wrist:[0.8,0.005]},
+    joints:[11,12,13,14,15,16,23,24],
+    bones:[[11,13],[13,15],[12,14],[14,16],[11,12],[11,23],[12,24],[23,24]],
+    spine:new Set(['11-12','11-23','12-24','23-24']),
+    coachGood:['Solid hammer curl!','Great neutral grip!','Perfect control!','Strict form!','Clean rep!'],
+    warnings:{torso:'⚠ NO SWINGING'},
+  },
+  push_up: {
+    name:'Push-up', icon:'🫸', reps:1177,
+    primaryKey:'elbow', standKey:'elbow', badKey:'hipDev', badDir:'high',
+    depthLabel:'PUSH',
+    visCheck:[11,12,13,14,15,16,23,24,27,28],
+    metrics:[
+      {key:'elbow',   label:'Elbow Flexion',     gold:{ideal:72,min:47,max:140},  weight:.3,  scale:180},
+      {key:'bodyLine',label:'Body Alignment',     gold:{ideal:165,min:155,max:180},weight:.25, scale:180},
+      {key:'hipDev',  label:'Hip Sag/Pike',       gold:{ideal:10,min:0,max:20},    weight:.25, scale:90},
+      {key:'shoulder',label:'Shoulder Angle',     gold:{ideal:48,min:20,max:90},   weight:.2,  scale:180},
+    ],
+    calSteps:{
+      stand:'🧘 Hold Plank (5s)',standDesc:'Arms extended, body straight',
+      good:'✅ 5 Good Push-ups',goodDesc:'Chest to ground, body straight',
+      bad:'❌ 3 Hip-Sag Push-ups',badDesc:'Let your hips drop/sag',
+    },
+    filters:{elbow:[1.5,0.01],bodyLine:[0.8,0.005],hipDev:[0.8,0.005],shoulder:[1.2,0.008]},
+    joints:[11,12,13,14,15,16,23,24,25,26,27,28],
+    bones:[[11,13],[13,15],[12,14],[14,16],[11,12],[11,23],[12,24],[23,24],[23,25],[24,26],[25,27],[26,28]],
+    spine:new Set(['11-12','11-23','12-24','23-24','23-25','24-26']),
+    coachGood:['Perfect push-up!','Great depth!','Body stays straight!','Excellent form!','Strong rep!'],
+    warnings:{hipDev:'⚠ HIPS SAGGING'},
+  },
+  shoulder_press: {
+    name:'Shoulder Press', icon:'🏋️‍♂️', reps:2131,
+    primaryKey:'elbow', standKey:'elbow', badKey:'torso', badDir:'high',
+    depthLabel:'PRESS',
+    visCheck:[11,12,13,14,15,16,23,24],
+    metrics:[
+      {key:'elbow',   label:'Elbow Flexion',     gold:{ideal:61,min:23,max:114},  weight:.3,  scale:180},
+      {key:'shoulderAbd',label:'Shoulder Abduction',gold:{ideal:80,min:29,max:126}, weight:.25, scale:180},
+      {key:'torso',   label:'Torso Lean',         gold:{ideal:2,min:0,max:10},     weight:.25, scale:30},
+      {key:'lockout', label:'Lockout',            gold:{ideal:1,min:0,max:1},      weight:.2,  scale:1},
+    ],
+    calSteps:{
+      stand:'🧍 Weights at Shoulders (5s)',standDesc:'Hold start position',
+      good:'✅ 5 Good Presses',goodDesc:'Full extension overhead',
+      bad:'❌ 3 Leaning Presses',badDesc:'Lean back excessively',
+    },
+    filters:{elbow:[1.5,0.01],shoulderAbd:[1.0,0.008],torso:[1.2,0.008],lockout:[0.6,0.004]},
+    joints:[11,12,13,14,15,16,23,24],
+    bones:[[11,13],[13,15],[12,14],[14,16],[11,12],[11,23],[12,24],[23,24]],
+    spine:new Set(['11-12','11-23','12-24','23-24']),
+    coachGood:['Full lockout!','Great press!','Solid overhead!','Strict form!','Strong rep!'],
+    warnings:{torso:'⚠ STOP LEANING BACK'},
+  },
+};
+
+// ═══ DOM ═══
+const $=id=>document.getElementById(id);
+const V=$('v'),C=$('c'),X=C.getContext('2d'),LOG=$('log');
+let pose=null,running=false,busy=false,fc=0,ft=0,fps=0,CW=0,CH=0;
+let voiceOn=true,frameTime=0;
+let curEx=null; // current exercise key
+let curDB=null; // current exercise DB entry
+
+// ═══ ONE EURO FILTER ═══
+class OneEuroFilter{
+  constructor(freq=30,minCut=1.0,beta=0.007,dCut=1.0){this.freq=freq;this.minCut=minCut;this.beta=beta;this.dCut=dCut;this.xPrev=null;this.dxPrev=0;this.tPrev=null}
+  _alpha(c){const te=1/this.freq;const tau=1/(2*Math.PI*c);return 1/(1+tau/te)}
+  filter(x,t){if(this.tPrev===null){this.xPrev=x;this.tPrev=t;return x}const dt=t-this.tPrev;if(dt>0)this.freq=1/dt;this.tPrev=t;const dx=(x-this.xPrev)*this.freq;const adx=this._alpha(this.dCut);const dxH=adx*dx+(1-adx)*this.dxPrev;this.dxPrev=dxH;const cut=this.minCut+this.beta*Math.abs(dxH);const ax=this._alpha(cut);const xH=ax*x+(1-ax)*this.xPrev;this.xPrev=xH;return xH}
+  reset(){this.xPrev=null;this.tPrev=null;this.dxPrev=0}
+}
+let filters={}; // per-metric filters, created on exercise select
+
+// ═══ SPEECH ═══
+const Speech={
+  locked:false,lockUntil:0,MIN_GAP:2500,
+  speak(t,f=false){if(!voiceOn)return;const n=Date.now();if(!f&&n<this.lockUntil)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=1.0;u.pitch=1.0;u.volume=0.9;const e=Math.max(this.MIN_GAP,t.length*80+500);this.lockUntil=n+e;this.locked=true;u.onend=()=>{this.locked=false};u.onerror=()=>{this.locked=false};speechSynthesis.speak(u)},
+  calSpeak(t){this.lockUntil=0;this.speak(t,true)},
+  coachSpeak(t){if(calMode)return;this.speak(t,false)},
+  cancel(){speechSynthesis.cancel();this.locked=false;this.lockUntil=0}
+};
+function toggleVoice(){voiceOn=!voiceOn;$('voiceBtn').textContent=voiceOn?'🔊':'🔇';$('voiceBtn').classList.toggle('muted',!voiceOn);if(!voiceOn)Speech.cancel()}
+
+// ═══ MATH ═══
+function a3(a,b,c){const r=Math.atan2(c.y-b.y,c.x-b.x)-Math.atan2(a.y-b.y,a.x-b.x);let d=Math.abs(r*180/Math.PI);return d>180?360-d:d}
+function vis(lm,...ids){let s=0;for(const i of ids)s+=(lm[i]?.visibility||0);return s/ids.length}
+function wAvg(l,lv,r,rv){const t=lv+rv;return t<0.01?(l+r)/2:(l*lv+r*rv)/t}
+function tLean(lm){const sx=(lm[11].x+lm[12].x)/2,sy=(lm[11].y+lm[12].y)/2,hx=(lm[23].x+lm[24].x)/2,hy=(lm[23].y+lm[24].y)/2;const dx=Math.abs(sx-hx),dy=Math.abs(hy-sy);return dy<0.001?90:Math.atan2(dx,dy)*180/Math.PI}
+function hipY(lm){return(lm[23].y+lm[24].y)/2}
+
+// ═══ EXERCISE-SPECIFIC ANGLE COMPUTATION ═══
+function computeAngles(lm){
+  if(!curDB)return null;
+  const ex=curEx;
+  if(ex==='squat'){
+    return{
+      hip:wAvg(a3(lm[11],lm[23],lm[25]),vis(lm,11,23,25),a3(lm[12],lm[24],lm[26]),vis(lm,12,24,26)),
+      knee:wAvg(a3(lm[23],lm[25],lm[27]),vis(lm,23,25,27),a3(lm[24],lm[26],lm[28]),vis(lm,24,26,28)),
+      ankle:(()=>{const s=(k,a)=>{const dx=Math.abs(k.x-a.x),dy=Math.abs(a.y-k.y);return dy<0.001?45:Math.atan2(dx,dy)*180/Math.PI};return wAvg(s(lm[25],lm[27]),vis(lm,25,27),s(lm[26],lm[28]),vis(lm,26,28))})(),
+      torso:tLean(lm),
+      valgus:Math.max(((lm[25].x-lm[23].x)-(lm[27].x-lm[23].x))*100,((lm[26].x-lm[24].x)-(lm[28].x-lm[24].x))*100),
+      hipY:hipY(lm),
+    };
+  }
+  if(ex==='bicep_curl'||ex==='hammer_curl'){
+    const el=wAvg(a3(lm[11],lm[13],lm[15]),vis(lm,11,13,15),a3(lm[12],lm[14],lm[16]),vis(lm,12,14,16));
+    const sh=wAvg(a3(lm[23],lm[11],lm[13]),vis(lm,23,11,13),a3(lm[24],lm[12],lm[14]),vis(lm,24,12,14));
+    const wd=(()=>{const d=(e,w)=>{const dx=Math.abs(w.x-e.x),dy=Math.abs(w.y-e.y);return dy<0.001?45:Math.atan2(dx,dy)*180/Math.PI};return(d(lm[13],lm[15])+d(lm[14],lm[16]))/2})();
+    return{elbow:el,shoulder:sh,torso:tLean(lm),wrist:wd,hipY:hipY(lm)};
+  }
+  if(ex==='push_up'){
+    const el=wAvg(a3(lm[11],lm[13],lm[15]),vis(lm,11,13,15),a3(lm[12],lm[14],lm[16]),vis(lm,12,14,16));
+    const bl=wAvg(a3(lm[11],lm[23],lm[27]),vis(lm,11,23,27),a3(lm[12],lm[24],lm[28]),vis(lm,12,24,28));
+    const hd=Math.abs(180-bl);
+    const sa=wAvg(a3(lm[13],lm[11],lm[23]),vis(lm,13,11,23),a3(lm[14],lm[12],lm[24]),vis(lm,14,12,24));
+    return{elbow:el,bodyLine:bl,hipDev:hd,shoulder:sa,hipY:hipY(lm)};
+  }
+  if(ex==='shoulder_press'){
+    const el=wAvg(a3(lm[11],lm[13],lm[15]),vis(lm,11,13,15),a3(lm[12],lm[14],lm[16]),vis(lm,12,14,16));
+    const ab=wAvg(a3(lm[23],lm[11],lm[13]),vis(lm,23,11,13),a3(lm[24],lm[12],lm[14]),vis(lm,24,12,14));
+    const lo=((lm[15].y<lm[11].y?1:0)+(lm[16].y<lm[12].y?1:0))/2;
+    return{elbow:el,shoulderAbd:ab,torso:tLean(lm),lockout:lo,hipY:hipY(lm)};
+  }
+  return null;
+}
+
+// ═══ STATE ═══
+let TH=null,SD=null;
+let calMode=null,calFrames=[],calGoodValleys=[],calBadValleys=[];
+let calGoodCount=0,calBadCount=0;
+let phase='standing',smoothPrimary=177,holdC=0,repCount=0,goodReps=0,rejReps=0;
+let repStart=0,minDepthP=180,repErrors=[];
+let repMaxHipY=0,repPostSum=0,repPostN=0,repBadN=0,repMaxBadMetric=0;
+let repBioMin={};
+let smoothPosture=100,lastCoachUpdate=0,lastCoachSpeak=0;
+let repScores=[];
+let trackingStartTime=0;
+
+// ═══ CALIBRATION DETECTOR (state machine) ═══
+const CalDetector={
+  state:'WAITING',deepest:999,deepestFrame:null,enteredBottomTime:0,lastCompletedTime:0,
+  MIN_BOTTOM_HOLD_MS:200,MIN_BETWEEN_MS:2000,DESCENT_TH:25,RETURN_TH:15,
+  reset(){this.state='WAITING';this.deepest=999;this.deepestFrame=null;this.enteredBottomTime=0;this.lastCompletedTime=0},
+  update(frame,standingVal){
+    const k=frame[curDB.primaryKey];const now=Date.now();
+    const dipTh=standingVal-this.DESCENT_TH;const retTh=standingVal-this.RETURN_TH;
+    switch(this.state){
+      case'WAITING':if(k<dipTh){this.state='DESCENDING';this.deepest=k;this.deepestFrame={...frame};log('⬇ Descent ('+curDB.primaryKey+'='+Math.round(k)+'°)')}break;
+      case'DESCENDING':
+        if(k<this.deepest){this.deepest=k;this.deepestFrame={...frame}}
+        if(k>this.deepest+12){this.state='AT_BOTTOM';this.enteredBottomTime=now;log('⏸ Bottom ('+Math.round(this.deepest)+'°)')}
+        if(k>retTh){this.state='WAITING';this.deepest=999}break;
+      case'AT_BOTTOM':
+        if(k>=retTh){
+          if(now-this.lastCompletedTime<this.MIN_BETWEEN_MS){log('⏳ Too fast');this.state='WAITING';this.deepest=999;break}
+          const v=this.deepestFrame;
+          if(v){this.lastCompletedTime=now;this.state='WAITING';this.deepest=999;this.deepestFrame=null;log('✅ Rep completed! '+curDB.primaryKey+'='+Math.round(v[curDB.primaryKey])+'°');return v}
+          else{this.state='WAITING';this.deepest=999}
+        }break;
+    }return null;
+  }
+};
+
+// ═══ BUILD EXERCISE SELECTOR ═══
+function buildExSelector(){
+  const g=$('exGrid');g.innerHTML='';
+  for(const[k,e]of Object.entries(EX_DB)){
+    const d=document.createElement('div');d.className='ex-card';d.dataset.ex=k;
+    d.innerHTML=`<div class="ex-card-icon">${e.icon}</div><div class="ex-card-name">${e.name}</div><div class="ex-card-reps">${e.reps.toLocaleString()} reps</div>`;
+    d.onclick=()=>selectExercise(k);g.appendChild(d);
+  }
+}
+function selectExercise(key){
+  curEx=key;curDB=EX_DB[key];
+  document.querySelectorAll('.ex-card').forEach(c=>c.classList.toggle('selected',c.dataset.ex===key));
+  $('startBtn').disabled=false;
+  $('exTag').textContent=curDB.name.toUpperCase();
+  $('hdrSub').textContent='Digital Therapy — '+curDB.name+' Analysis';
+  // Update cal labels
+  $('cs1h').textContent=curDB.calSteps.stand;$('cs1p').textContent=curDB.calSteps.standDesc;
+  $('cs2h').textContent=curDB.calSteps.good;$('cs2p').textContent=curDB.calSteps.goodDesc;
+  $('cs3h').textContent=curDB.calSteps.bad;$('cs3p').textContent=curDB.calSteps.badDesc;
+  // Build bio cards
+  buildBioCards();
+  // Build filters
+  filters={};
+  for(const m of curDB.metrics){
+    const fp=curDB.filters[m.key]||[1.0,0.007];
+    filters[m.key]=new OneEuroFilter(30,fp[0],fp[1]);
+  }
+  // Check saved calibration
+  checkSavedCal();
+  log('Selected: '+curDB.name+' ('+curDB.reps+' reps dataset)');
+}
+
+function buildBioCards(){
+  const g=$('bioGrid');g.innerHTML='';
+  curDB.metrics.forEach((m,i)=>{
+    const full=i===curDB.metrics.length-1&&curDB.metrics.length%2===1;
+    const gold=m.gold;
+    const rangeText=m.isValgus?`Acceptable ±${gold.max}° · Flag >${gold.warnAt}°`:`Ideal ${gold.ideal}° (${gold.min}–${gold.max}°)`;
+    // Compute ideal bar position
+    const barLeft=Math.round((gold.min/(m.scale||180))*100);
+    const barWidth=Math.round(((gold.max-gold.min)/(m.scale||180))*100);
+    const html=`<div class="bio-card${full?' bio-full':''}" id="b_${m.key}">
+      <div class="bio-top"><span class="bio-lbl">${m.label}</span><span class="bio-val" id="v_${m.key}">—</span></div>
+      <div class="bio-range">${rangeText}</div>
+      <div class="bio-bar"><div class="bio-bar-ideal" style="left:${barLeft}%;width:${barWidth}%"></div><div class="bio-bar-fill" id="bar_${m.key}" style="width:0"></div></div>
+    </div>`;
+    g.insertAdjacentHTML('beforeend',html);
+  });
+}
+
+function checkSavedCal(){
+  try{
+    const saved=localStorage.getItem('exai_cal_'+curEx);
+    if(saved){
+      const d=JSON.parse(saved);
+      if(d&&d.sd&&d.th){
+        const age=Date.now()-d.ts;
+        const ageStr=age<3600000?Math.round(age/60000)+'m ago':age<86400000?Math.round(age/3600000)+'h ago':Math.round(age/86400000)+'d ago';
+        $('skipCalBtn').style.display='block';
+        $('skipCalBtn').textContent='⚡ Skip Calibration ('+curDB.name+' saved '+ageStr+')';
+      }else $('skipCalBtn').style.display='none';
+    }else $('skipCalBtn').style.display='none';
+  }catch(e){$('skipCalBtn').style.display='none'}
+}
+
+// ═══ CAMERA ═══
+async function initCamera(){
+  const s=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},facingMode:'user'}});
+  V.srcObject=s;V.play();
+  await new Promise(r=>{if(V.readyState>=2)return r();V.onloadeddata=()=>r()});
+  log('Camera: '+V.videoWidth+'x'+V.videoHeight);
+  if(!pose){
+    log('Loading BlazePose (complexity=2)...');
+    pose=new Pose({locateFile:f=>'https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/'+f});
+    pose.setOptions({modelComplexity:2,smoothLandmarks:true,enableSegmentation:false,minDetectionConfidence:0.6,minTrackingConfidence:0.6});
+    pose.onResults(onRes);await pose.send({image:V});log('Model loaded ✓');
+  }
+  running=true;$('startSec').style.display='none';
+}
+
+async function startCam(){
+  if(!curEx){alert('Select an exercise first');return}
+  $('splash').classList.add('gone');
+  try{await initCamera();beginCal();requestAnimationFrame(loop)}catch(e){alert('Camera error: '+e.message)}
+}
+
+async function startCamSkip(){
+  if(!curEx)return;
+  $('splash').classList.add('gone');
+  try{
+    const saved=JSON.parse(localStorage.getItem('exai_cal_'+curEx));
+    if(!saved||!saved.sd||!saved.th){startCam();return}
+    SD=saved.sd;TH=saved.th;
+    const age=Date.now()-saved.ts;
+    const ageStr=age<3600000?Math.round(age/60000)+'m ago':age<86400000?Math.round(age/3600000)+'h ago':Math.round(age/86400000)+'d ago';
+    log('✅ Loaded saved calibration for '+curDB.name+' ('+ageStr+')');
+    await initCamera();
+    activateTracking();
+    Speech.calSpeak('Ready. Using saved calibration for '+curDB.name+'. Start exercising.');
+    showFB('⚡ Loaded saved '+curDB.name+' calibration!','good');
+    requestAnimationFrame(loop);
+  }catch(e){alert('Camera error: '+e.message)}
+}
+
+async function loop(){if(!running)return;if(!busy&&V.readyState>=2){busy=true;try{await pose.send({image:V})}catch(e){}busy=false}requestAnimationFrame(loop)}
+
+function switchExercise(){
+  running=false;calMode=null;TH=null;SD=null;
+  $('calSec').style.display='none';$('repSec').style.display='none';$('ctrlSec').style.display='none';
+  $('depthGauge').style.display='none';document.querySelector('.form-ring').style.display='none';
+  $('splash').classList.remove('gone');
+  buildExSelector();
+  $('startBtn').disabled=true;$('skipCalBtn').style.display='none';
+  log('Switched — select new exercise.');
+}
+
+// ═══ CALIBRATION ═══
+function beginCal(){
+  calMode='stand';calFrames=[];calGoodValleys=[];calBadValleys=[];calGoodCount=0;calBadCount=0;
+  CalDetector.reset();
+  Object.values(filters).forEach(f=>f.reset());
+  Speech.cancel();
+  phase='standing';repCount=0;goodReps=0;rejReps=0;repScores=[];
+  $('calSec').style.display='block';$('repSec').style.display='none';$('ctrlSec').style.display='none';
+  $('depthGauge').style.display='none';document.querySelector('.form-ring').style.display='none';
+  $('calProg').style.width='0%';$('calCD').textContent='';
+  for(let i=1;i<=4;i++)$('cs'+i).className='cal-step waiting';
+  setCS(1);setCI('Hold starting position — stand still','go');
+  Speech.calSpeak('Hold your starting position. Stand still for 5 seconds.');
+  let cd=5;$('calCD').textContent=cd;
+  const iv=setInterval(()=>{if(calMode!=='stand'){clearInterval(iv);return}cd--;$('calCD').textContent=cd>0?cd:'';if(cd<=0){clearInterval(iv);endStand()}},1000);
+}
+
+function endStand(){
+  if(calFrames.length<10){setCI('Not enough data — try again','warn');beginCal();return}
+  const pk=curDB.primaryKey;const bk=curDB.badKey;
+  const vals=k=>calFrames.map(f=>f[k]);
+  const avg=a=>a.reduce((s,v)=>s+v,0)/a.length;
+  SD={};
+  for(const m of curDB.metrics)SD[m.key]=avg(vals(m.key));
+  SD.hipY=avg(calFrames.map(f=>f.hipY||0));
+  log('Standing: '+curDB.metrics.map(m=>m.key+'='+Math.round(SD[m.key])+'°').join(' '));
+  $('cs1s').textContent='✓ '+curDB.primaryKey+'='+Math.round(SD[pk])+'°';setCS(1,'done');
+  calMode='good';calGoodCount=0;CalDetector.reset();
+  setCS(2);setCI('Do 5 good '+curDB.name+' reps — proper form','go');$('calProg').style.width='25%';
+  Speech.calSpeak('Good. Now do 5 good '+curDB.name+' reps with proper form.');
+}
+
+function onCalValley(v){
+  if(calMode==='good'){
+    calGoodCount++;calGoodValleys.push(v);
+    $('cs2s').textContent=calGoodCount+'/5';$('calProg').style.width=(25+calGoodCount*10)+'%';
+    showFB('✅ Good rep '+calGoodCount+'/5','good');
+    Speech.calSpeak('Good rep '+calGoodCount);
+    if(calGoodCount>=5){
+      calMode='bad';calBadCount=0;CalDetector.reset();
+      setCS(2,'done');setCS(3);
+      setCI(curDB.calSteps.bad+' — '+curDB.calSteps.badDesc,'warn');$('calProg').style.width='75%';
+      Speech.calSpeak('Excellent. Now do 3 bad form reps. '+curDB.calSteps.badDesc+'.');
+    }
+  }else if(calMode==='bad'){
+    calBadCount++;calBadValleys.push(v);
+    $('cs3s').textContent=calBadCount+'/3';$('calProg').style.width=(75+calBadCount*5)+'%';
+    showFB('✅ Bad rep '+calBadCount+'/3','info');
+    Speech.calSpeak('Bad rep '+calBadCount);
+    if(calBadCount>=3){
+      calMode='compute';
+      Speech.calSpeak('All bad reps recorded. Computing thresholds.');
+      setCS(3,'done');setTimeout(computeTH,3000);
+    }
+  }
+}
+
+function computeTH(){
+  setCS(4);
+  const avg=a=>a.reduce((s,v)=>s+v,0)/a.length;
+  const mn=a=>Math.min(...a);const mx=a=>Math.max(...a);
+  const pk=curDB.primaryKey;const bk=curDB.badKey;
+
+  const gP=calGoodValleys.map(f=>f[pk]);
+  const gB=calGoodValleys.map(f=>f[bk]||0);
+  const bB=calBadValleys.map(f=>f[bk]||0);
+  const maxGB=mx(gB),minBB=mn(bB);const badGap=curDB.badDir==='high'?minBB-maxGB:maxGB-minBB;
+
+  TH={
+    down:Math.round(SD[pk]-(SD[pk]-mx(gP))*0.4),
+    bottom:Math.round(avg(gP)+10),
+    up:Math.round(SD[pk]-15),
+    maxBad:curDB.badDir==='high'?Math.round(badGap>2?maxGB+badGap*0.35:maxGB+5):Math.round(badGap>2?maxGB-badGap*0.35:maxGB-5),
+    minHipD:0.04,badPct:badGap>8?30:badGap>4?25:20,hold:6,alpha:0.25,minRepMs:1200
+  };
+  log('TH: down='+TH.down+' bot='+TH.bottom+' up='+TH.up+' maxBad='+TH.maxBad);
+  try{localStorage.setItem('exai_cal_'+curEx,JSON.stringify({sd:SD,th:TH,ts:Date.now()}))}catch(e){}
+  setCI('✅ Calibrated! '+bk+'≤'+TH.maxBad+'° depth≤'+TH.bottom+'°','done');
+  $('calCD').textContent='🎯';$('cs4s').textContent='✓';setCS(4,'done');$('calProg').style.width='100%';
+  Speech.calSpeak('Calibration complete. Start '+curDB.name+' whenever ready.');
+  showFB('✅ Calibrated — start exercising!','good');
+  setTimeout(()=>activateTracking(),3000);
+}
+
+function activateTracking(){
+  calMode=null;
+  $('calSec').style.display='none';$('repSec').style.display='block';$('ctrlSec').style.display='block';
+  $('depthGauge').style.display='block';document.querySelector('.form-ring').style.display='block';
+  phase='standing';smoothPrimary=SD?SD[curDB.primaryKey]:177;holdC=0;repCount=0;goodReps=0;rejReps=0;repScores=[];
+  trackingStartTime=Date.now();$('repHist').innerHTML='';
+}
+
+// ═══ UI ═══
+function setCS(n,s){for(let i=1;i<=4;i++){const e=$('cs'+i);if(s==='done'&&i===n)e.className='cal-step done';else e.className='cal-step '+(i<n?'done':i===n?'active':'waiting')}}
+function setCI(t,c){$('calInstr').textContent=t;$('calInstr').className='instr '+c}
+function showFB(m,c){const fb=$('fb');const d=document.createElement('div');d.className=c;d.textContent=m;fb.appendChild(d);setTimeout(()=>d.remove(),3500);while(fb.children.length>3)fb.firstChild.remove()}
+function flashRep(sc){const el=$('repFlash');el.textContent=sc;el.style.color=sc>=70?'#2e8b57':sc>=40?'#c49b2e':'#c44040';el.classList.remove('show');void el.offsetWidth;el.classList.add('show')}
+function addRepBadge(sc){const h=$('repHist');const b=document.createElement('div');b.className='rep-badge '+(sc>=85?'exc':sc>=70?'ok':sc>=50?'mid':'low');b.textContent=sc;b.title='Rep '+repCount+': '+sc+'/100';h.appendChild(b)}
+
+function updateBioCard(key,val,gold,scale){
+  const card=$('b_'+key);if(!card)return;
+  const isV=gold.isValgus;const tol=(gold.max-gold.min)*0.05;
+  let st='ok';
+  if(isV){if(Math.abs(val)>gold.warnAt)st='bad';else if(Math.abs(val)>gold.max)st='warn'}
+  else{if(val<gold.min-tol||val>gold.max+tol)st='bad';else if(val<gold.min||val>gold.max)st='warn'}
+  card.className='bio-card'+(card.classList.contains('bio-full')?' bio-full':'')+' '+st;
+  const bar=$('bar_'+key);if(!bar)return;
+  bar.style.width=Math.min(100,Math.max(0,Math.abs(val)/(scale||180)*100))+'%';
+  bar.style.background=st==='ok'?'var(--green)':st==='warn'?'var(--amber)':'var(--red)';
+}
+
+function mx(v){return(1-v)*CW}function my(v){return v*CH}
+function log(m){console.log('[ExAI]',m);LOG.innerHTML+=m+'<br>';LOG.scrollTop=LOG.scrollHeight}
+
+// ═══ COACHING ═══
+function evaluateBio(angles,isBot){
+  const issues=[];if(!curDB)return issues;
+  for(const m of curDB.metrics){
+    const v=angles[m.key];const g=m.gold;if(v===undefined)continue;
+    const val=m.isValgus?Math.abs(v):v;
+    if(isBot||m.key===curDB.badKey){
+      if(m.isValgus){
+        if(val>g.warnAt)issues.push({metric:m.key,severity:'flag',what:m.label+' excessive ('+Math.round(val)+'°)',why:'Beyond safe range.',fix:'Correct alignment.',priority:1});
+        else if(val>g.max)issues.push({metric:m.key,severity:'warn',what:m.label+' slight drift ('+Math.round(val)+'°)',why:'Watch under load.',fix:'Maintain alignment.',priority:3});
+      }else{
+        if(val<g.min)issues.push({metric:m.key,severity:'flag',what:m.label+' too low ('+Math.round(val)+'°)',why:'Below dataset range.',fix:'Increase range of motion.',priority:1});
+        else if(val>g.max)issues.push({metric:m.key,severity:'flag',what:m.label+' too high ('+Math.round(val)+'°)',why:'Beyond safe range.',fix:'Reduce range of motion.',priority:2});
+      }
+    }
+  }
+  issues.sort((a,b)=>a.priority-b.priority);return issues;
+}
+
+function updateCoachUI(issues){
+  const now=Date.now();if(now-lastCoachUpdate<1000||calMode)return;lastCoachUpdate=now;
+  const box=$('coachBox'),top=$('coachTop'),msg=$('coachMsg'),fix=$('coachFix'),enc=$('coachEnc');
+  if(issues.length===0){
+    box.className='coach-box good';top.textContent='✅ Great Form';
+    msg.textContent='All markers within ideal range.';fix.textContent='';
+    enc.textContent=curDB.coachGood[repCount%curDB.coachGood.length];
+  }else{
+    const t=issues[0];box.className='coach-box issue';
+    top.textContent=t.severity==='flag'?'⚠️ Correction Needed':'💡 Minor Adjustment';
+    msg.textContent=t.what;fix.textContent='Why: '+t.why+'\n→ '+t.fix;
+    enc.textContent=issues.length>1?'Also: '+issues.slice(1).map(i=>i.metric).join(', '):'';
+  }
+}
+
+function drawFormRing(score){
+  const rc=$('formRing');const rx=rc.getContext('2d');rx.clearRect(0,0,80,80);
+  const pct=score/100;const color=score>=80?'#2e8b57':score>=50?'#c49b2e':'#c44040';
+  rx.beginPath();rx.arc(40,40,32,0,Math.PI*2);rx.strokeStyle='rgba(255,255,255,0.1)';rx.lineWidth=6;rx.stroke();
+  rx.beginPath();rx.arc(40,40,32,-Math.PI/2,-Math.PI/2+pct*Math.PI*2);rx.strokeStyle=color;rx.lineWidth=6;rx.lineCap='round';rx.stroke();
+  rx.font='bold 18px DM Sans';rx.textAlign='center';rx.textBaseline='middle';rx.fillStyle='#fff';rx.fillText(score,40,38);
+  rx.font='7px DM Sans';rx.fillStyle='rgba(255,255,255,0.5)';rx.fillText('FORM',40,52);
+}
+
+function getJointColor(val,gold){if(val>=gold.min&&val<=gold.max)return'#2e8b57';const d=val<gold.min?gold.min-val:val-gold.max;return d<5?'#c49b2e':'#c44040'}
+function drawAngleArc(cx,cy,startA,endA,radius,color){X.beginPath();X.arc(cx,cy,radius,startA,endA);X.strokeStyle=color;X.lineWidth=4;X.globalAlpha=0.6;X.stroke();X.globalAlpha=1}
+
+function exportData(){
+  const d={version:'exerciseai-v15.0',exercise:curEx,exerciseName:curDB.name,timestamp:new Date().toISOString(),standing:SD,thresholds:TH,gold:Object.fromEntries(curDB.metrics.map(m=>[m.key,m.gold])),datasetInfo:{source:curDB.reps+' reps from Riccardo Riccio dataset'},goodValleys:calGoodValleys,badValleys:calBadValleys,stats:{reps:repCount,good:goodReps,rejected:rejReps,scores:repScores}};
+  const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='exerciseai_'+curEx+'_'+Date.now()+'.json';a.click();
+}
+
+// ═══ POSE RESULTS ═══
+function onRes(res){
+  if(!curDB)return;
+  fc++;const now=performance.now();if(now-ft>=1000){fps=fc;fc=0;ft=now}
+  frameTime=now/1000;
+
+  // Canvas sizing
+  const vW=V.videoWidth||1280,vH=V.videoHeight||720;C.width=vW;C.height=vH;
+  const vR=V.getBoundingClientRect();const vidAspect=vW/vH,contAspect=vR.width/vR.height;
+  let renderW,renderH,offX=0,offY=0;
+  if(contAspect>vidAspect){renderH=vR.height;renderW=renderH*vidAspect;offX=(vR.width-renderW)/2}
+  else{renderW=vR.width;renderH=renderW/vidAspect;offY=(vR.height-renderH)/2}
+  C.style.width=renderW+'px';C.style.height=renderH+'px';C.style.left=offX+'px';C.style.top=offY+'px';
+  CW=C.width;CH=C.height;
+
+  if(!res.poseLandmarks){X.font='bold 18px DM Sans';X.fillStyle='#c44040';X.textAlign='center';X.fillText('No person detected',CW/2,CH/2);return}
+  const lm=res.poseLandmarks;
+  const coreVis=vis(lm,...curDB.visCheck);
+  if(coreVis<0.35){X.font='bold 16px DM Sans';X.fillStyle='#c49b2e';X.textAlign='center';X.fillText('Low visibility — step back',CW/2,CH/2);return}
+
+  // Compute & filter angles
+  const raw=computeAngles(lm);if(!raw)return;
+  const angles={};
+  for(const m of curDB.metrics){
+    const f=filters[m.key];
+    angles[m.key]=f?f.filter(raw[m.key]!==undefined?raw[m.key]:0,frameTime):raw[m.key]||0;
+  }
+  angles.hipY=raw.hipY||0;
+  const frame={...angles};
+
+  // Update bio cards
+  const pk=curDB.primaryKey;
+  const isBot=phase==='bottom'||(TH&&angles[pk]<TH.bottom+15);
+  for(const m of curDB.metrics){
+    const el=$('v_'+m.key);if(el)el.textContent=Math.round(angles[m.key])+'°';
+    updateBioCard(m.key,angles[m.key],m.gold,m.scale);
+  }
+
+  // Coaching
+  const issues=evaluateBio(angles,isBot);
+  updateCoachUI(issues);
+  if(!calMode&&issues.length>0&&issues[0].severity==='flag'&&phase!=='standing'&&Date.now()-lastCoachSpeak>4000){
+    lastCoachSpeak=Date.now();Speech.coachSpeak(issues[0].fix.split('.')[0]);
+  }
+
+  // Posture score
+  let ps=100;const bk=curDB.badKey;
+  const badEx=angles[bk]-(TH?TH.maxBad:(SD?SD[bk]+10:20));
+  if(curDB.badDir==='high'&&badEx>0)ps-=Math.min(50,badEx*3);
+  if(curDB.badDir==='low'&&badEx<0)ps-=Math.min(50,Math.abs(badEx)*3);
+  ps=Math.max(0,Math.round(ps));
+  smoothPosture=0.12*ps+0.88*smoothPosture;const posture=Math.round(smoothPosture);
+  $('mFill').style.width=posture+'%';
+  $('mFill').style.background=posture>=80?'var(--green)':posture>=50?'var(--amber)':'var(--red)';
+  $('mVal').textContent=posture+'/100';$('mVal').style.color=posture>=80?'var(--green)':posture>=50?'var(--amber)':'var(--red)';
+  if(!calMode&&TH)drawFormRing(posture);
+
+  // Depth gauge
+  if(TH&&SD){
+    const range=SD[pk]-TH.bottom;const current=SD[pk]-angles[pk];
+    const pct=Math.max(0,Math.min(100,(current/range)*100));
+    $('depthFill').style.height=pct+'%';
+    $('depthFill').style.background=pct>=80?'#2e8b57':pct>=50?'#c49b2e':'rgba(255,255,255,0.3)';
+    $('depthVal').textContent=Math.round(pct)+'%';
+  }
+
+  // Calibration
+  if(calMode==='stand')calFrames.push({...angles,hipY:raw.hipY||0});
+  if((calMode==='good'||calMode==='bad')&&SD){
+    const v=CalDetector.update(frame,SD[pk]);if(v)onCalValley(v);
+  }
+
+  // ═══ SKELETON ═══
+  for(const[a,b]of curDB.bones){
+    const pa=lm[a],pb=lm[b];if(!pa||!pb||pa.visibility<0.3||pb.visibility<0.3)continue;
+    const k=a+'-'+b;const isSp=curDB.spine.has(k);
+    X.strokeStyle=isSp?'rgba(0,102,174,0.7)':'rgba(255,255,255,0.85)';X.lineWidth=isSp?8:5;X.lineCap='round';
+    X.beginPath();X.moveTo(mx(pa.x),my(pa.y));X.lineTo(mx(pb.x),my(pb.y));X.stroke();
+  }
+  for(const idx of curDB.joints){
+    const p=lm[idx];if(!p||p.visibility<0.3)continue;
+    const jx=mx(p.x),jy=my(p.y);
+    // Find gold for this joint's metric
+    let cl='#4a9fd4';
+    if(curEx==='squat'){
+      if(idx===23||idx===24)cl=getJointColor(angles.hip,curDB.metrics[0].gold);
+      if(idx===25||idx===26)cl=getJointColor(angles.knee,curDB.metrics[1].gold);
+      if(idx===27||idx===28)cl=getJointColor(angles.ankle,curDB.metrics[2].gold);
+    }else if(curEx==='bicep_curl'||curEx==='hammer_curl'){
+      if(idx===13||idx===14)cl=getJointColor(angles.elbow,curDB.metrics[0].gold);
+      if(idx===11||idx===12)cl=getJointColor(angles.shoulder,curDB.metrics[1].gold);
+    }else if(curEx==='push_up'){
+      if(idx===13||idx===14)cl=getJointColor(angles.elbow,curDB.metrics[0].gold);
+    }else if(curEx==='shoulder_press'){
+      if(idx===13||idx===14)cl=getJointColor(angles.elbow,curDB.metrics[0].gold);
+      if(idx===11||idx===12)cl=getJointColor(angles.shoulderAbd,curDB.metrics[1].gold);
+    }
+    X.shadowColor=cl;X.shadowBlur=16;
+    X.beginPath();X.arc(jx,jy,9,0,Math.PI*2);X.fillStyle=cl;X.fill();
+    X.strokeStyle='rgba(255,255,255,0.5)';X.lineWidth=2.5;X.stroke();X.shadowBlur=0;
+  }
+
+  // Spine reference line
+  const sx=(lm[11].x+lm[12].x)/2,sy=(lm[11].y+lm[12].y)/2;
+  const hxp=(lm[23].x+lm[24].x)/2,hyp=(lm[23].y+lm[24].y)/2;
+  const lC=badEx>15?'#c44040':badEx>0?'#c49b2e':'#0066AE';
+  X.strokeStyle=lC;X.lineWidth=7;X.setLineDash([6,4]);
+  X.beginPath();X.moveTo(mx(sx),my(sy));X.lineTo(mx(hxp),my(hyp));X.stroke();X.setLineDash([]);
+
+  // Primary metric label on video
+  X.font='bold 15px DM Sans';X.textAlign='center';X.textBaseline='middle';
+  const bx=mx((sx+hxp)/2),by=my((sy+hyp)/2);
+  X.strokeStyle='rgba(0,0,0,0.6)';X.lineWidth=4;
+  X.strokeText(Math.round(angles[bk])+'°',bx+22,by);X.fillStyle=lC;X.fillText(Math.round(angles[bk])+'°',bx+22,by);
+
+  // HUD
+  X.font='9px monospace';X.textAlign='left';X.textBaseline='top';
+  X.fillStyle='rgba(10,37,64,0.65)';X.fillRect(0,0,CW,18);X.fillStyle='#7ab4da';
+  const hudParts=curDB.metrics.slice(0,4).map(m=>m.key.substr(0,3).toUpperCase()+':'+Math.round(angles[m.key])+'°').join('  ');
+  X.fillText(`FPS:${fps}  ${hudParts}  VIS:${Math.round(coreVis*100)}%  ${phase}`,6,4);
+
+  // Phase label
+  if(TH){const pc={standing:'#8a96a8',descending:'#c49b2e',bottom:'#2e8b57',ascending:'#0066AE'};X.font='bold 15px DM Sans';X.textAlign='center';X.textBaseline='bottom';X.fillStyle=pc[phase]||'#888';X.fillText(phase.toUpperCase(),CW/2,CH-10)}
+
+  // Warnings
+  if(TH&&curDB.warnings){
+    let wy=22;
+    for(const[wk,wMsg]of Object.entries(curDB.warnings)){
+      const wVal=angles[wk]||0;
+      const thresh=TH.maxBad||(SD?SD[wk]+10:999);
+      const show=curDB.badDir==='high'?wVal>thresh:(wk==='valgus'?Math.abs(wVal)>10:wVal<thresh);
+      if(show&&phase!=='standing'){
+        X.font='bold 14px DM Sans';X.textAlign='right';X.textBaseline='top';
+        const tw=X.measureText(wMsg).width;
+        X.fillStyle='rgba(196,64,64,0.9)';X.beginPath();X.roundRect(CW-tw-22,wy,tw+18,28,6);X.fill();
+        X.fillStyle='#fff';X.fillText(wMsg,CW-12,wy+4);wy+=34;
+      }
+    }
+  }
+
+  // ═══ REP STATE MACHINE ═══
+  if(!TH||calMode)return;
+  if(Date.now()-trackingStartTime<3000)return;
+  const T=TH;const pv=angles[pk];
+  smoothPrimary=T.alpha*pv+(1-T.alpha)*smoothPrimary;
+  const k=smoothPrimary;if(k<minDepthP)minDepthP=k;
+
+  if(phase!=='standing'){
+    repPostSum+=ps;repPostN++;
+    if(badEx>0)repBadN++;if(angles[bk]>repMaxBadMetric)repMaxBadMetric=angles[bk];
+    if(raw.hipY>repMaxHipY)repMaxHipY=raw.hipY;
+    // Track bio mins/maxes
+    for(const m of curDB.metrics){
+      const v=angles[m.key];
+      if(repBioMin[m.key]===undefined)repBioMin[m.key]=v;
+      // For primary/depth metrics, track minimum; for bad metrics, track maximum
+      if(m.key===pk){if(v<repBioMin[m.key])repBioMin[m.key]=v}
+      else{if(v>repBioMin[m.key])repBioMin[m.key]=v}
+    }
+    for(const iss of issues){
+      if(iss.severity==='flag')repErrors.push({t:iss.metric,s:'high'});
+      else if(iss.severity==='warn')repErrors.push({t:iss.metric,s:'medium'});
+    }
+  }
+  const liveBad=repPostN>0?Math.round(repBadN/repPostN*100):0;
+  $('rBad').textContent=liveBad+'%';
+  $('rBad').style.color=liveBad>T.badPct?'#c44040':liveBad>T.badPct*0.5?'#c49b2e':'var(--muted)';
+  const ppc={standing:['#e0e8f0','#8a96a8'],descending:['#fdf8ed','#c49b2e'],bottom:['#edf6f0','#2e8b57'],ascending:['#edf5fb','#0066AE']};
+  const pp=$('pill');pp.textContent=phase.toUpperCase();pp.style.background=ppc[phase][0];pp.style.color=ppc[phase][1];
+
+  const nowMs=Date.now();let done=null;
+  switch(phase){
+    case'standing':if(k<T.down){if(++holdC>=T.hold){phase='descending';repStart=nowMs;minDepthP=k;repErrors=[];holdC=0;repMaxHipY=raw.hipY;repPostSum=0;repPostN=0;repBadN=0;repMaxBadMetric=0;repBioMin={}}}else holdC=0;break;
+    case'descending':if(k<=T.bottom){if(++holdC>=T.hold){phase='bottom';holdC=0}}else if(k>T.up){if(++holdC>=T.hold)done=finishRep(nowMs,false)}else holdC=0;break;
+    case'bottom':if(k>T.bottom+8){phase='ascending';holdC=0}break;
+    case'ascending':if(k>=T.up){if(++holdC>=T.hold)done=finishRep(nowMs,true)}else if(k<T.bottom){phase='bottom';holdC=0}else holdC=0;break;
+  }
+  if(done){$('repN').textContent=repCount;$('rGood').textContent=goodReps;$('rRej').textContent=rejReps}
+}
+
+function finishRep(now,full){
+  const avgP=repPostN>0?repPostSum/repPostN:100;
+  const badPct=repPostN>0?(repBadN/repPostN)*100:0;
+  const hipRise=repMaxHipY-(SD?SD.hipY:0.69);
+  const repDuration=now-repStart;
+  const pk=curDB.primaryKey;
+
+  if(repDuration<(TH.minRepMs||1200)){rejReps++;showFB('❌ Too fast','bad');resetRep();return'r'}
+  if(curEx==='squat'&&hipRise<TH.minHipD){rejReps++;showFB('❌ Hips didn\'t drop','bad');resetRep();return'r'}
+  if(SD&&minDepthP>SD[pk]-25){rejReps++;showFB('❌ Not deep enough','bad');Speech.coachSpeak('Go deeper.');resetRep();return'r'}
+  if(badPct>TH.badPct){rejReps++;showFB('❌ Bad form — '+Math.round(badPct)+'%','bad');Speech.coachSpeak('Not counted. Fix form.');resetRep();return'r'}
+  if(avgP<40){rejReps++;showFB('❌ Poor form','bad');resetRep();return'r'}
+
+  repCount++;
+  const errMap={};for(const e of repErrors)if(!errMap[e.t]||e.s==='high')errMap[e.t]=e;
+  let sc=100;
+  for(const e of Object.values(errMap))sc-=e.s==='high'?15:8;
+  if(!full)sc-=10;if(avgP<80)sc-=Math.round((80-avgP)*0.3);
+  // Bonus for good primary metric
+  const pkGold=curDB.metrics.find(m=>m.key===pk)?.gold;
+  if(pkGold&&repBioMin[pk]>=pkGold.min&&repBioMin[pk]<=pkGold.max)sc=Math.min(100,sc+3);
+  sc=Math.max(0,sc);if(sc>=70)goodReps++;
+
+  repScores.push(sc);
+  log('✅ #'+repCount+' sc='+sc+' '+pk+':'+Math.round(repBioMin[pk]||0)+'°');
+  $('rScore').textContent=sc;$('rScore').style.color=sc>=70?'var(--green)':sc>=40?'var(--amber)':'var(--red)';
+  addRepBadge(sc);flashRep(sc);
+
+  if(sc>=85){showFB('✅ Rep '+repCount+': '+sc+' — Excellent!','good');Speech.coachSpeak('Excellent! '+sc+' points.')}
+  else if(sc>=70){showFB('✅ Rep '+repCount+': '+sc+' — Good!','good');Speech.coachSpeak('Good rep. '+sc+'.')}
+  else if(sc>=50){showFB('⚠ Rep '+repCount+': '+sc+' — Fair','warn');Speech.coachSpeak('Rep '+repCount+'. Score '+sc+'.')}
+  else{showFB('❌ Rep '+repCount+': '+sc+' — Needs work','bad');Speech.coachSpeak('Score '+sc+'. Fix form.')}
+
+  resetRep();return{n:repCount,sc};
+}
+
+function resetRep(){phase='standing';smoothPrimary=SD?SD[curDB.primaryKey]:177;holdC=0;minDepthP=180;repErrors=[];repMaxHipY=0;repPostSum=0;repPostN=0;repBadN=0;repMaxBadMetric=0;repBioMin={}}
+
+// ═══ INIT ═══
+buildExSelector();
+log('v15.0 ready. Select an exercise.');
+</script>
+</body>
+</html>
