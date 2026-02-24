@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ExerciseAI v15.1 — HCL Healthcare</title>
+<title>ExerciseAI v15.2 — HCL Healthcare</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -158,7 +158,7 @@ body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:#eaeff5
   </div>
   <div class="hdr-right">
     <span class="hdr-tag" id="exTag">SELECT EXERCISE</span>
-    <span class="hdr-tag">v15.1</span>
+    <span class="hdr-tag">v15.2</span>
     <button class="hdr-voice" id="voiceBtn" onclick="toggleVoice()" title="Toggle voice">🔊</button>
   </div>
 </div>
@@ -243,12 +243,12 @@ body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:#eaeff5
     </div>
   </div>
 
-  <div class="sec"><div class="sec-label">Debug Log</div><div class="log" id="log">v15.1 ready.<br></div></div>
+  <div class="sec"><div class="sec-label">Debug Log</div><div class="log" id="log">v15.2 ready.<br></div></div>
 </div>
 </div>
 
 <div class="ftr">
-  <div class="ftr-left">ExerciseAI v15.1 · HCL Healthcare Digital Therapy</div>
+  <div class="ftr-left">ExerciseAI v15.2 · HCL Healthcare Digital Therapy</div>
   <div class="ftr-right">Multi-Exercise · Data-Validated · On-Device</div>
 </div>
 </div>
@@ -303,33 +303,34 @@ const EX_DB = {
   bicep_curl: {
     name:'Barbell Bicep Curl', icon:'💪', reps:3181,
     primaryKey:'elbow', standKey:'elbow', badKey:'torso', badDir:'high',
-    repDir:'down',    // elbow angle decreases as you curl up
+    repDir:'down',
     depthLabel:'CURL',
     visCheck:[11,12,13,14,15,16,23,24],
-    // 3,181 reps: 175 real (p50=16°, 3.9–110°) + 3,006 synthetic (p50=114°, 91–133°)
-    // 70/30 weighted: ideal=0.7*16+0.3*114=46, min=0.7*4+0.3*91=30, max=0.7*110+0.3*133=117
+    criticalJoints:[13,14,15,16],  // elbows + wrists MUST each be visible
+    criticalVisMin:0.5,
     metrics:[
-      {key:'elbow',   label:'Elbow Flexion',     gold:{ideal:46,min:30,max:117},  weight:.35, scale:180},
-      // Real shoulder=11.5°(4.2–25), Synth=23.6°(11.3–28.4) → 70/30: ideal=15, min=6, max=26
-      {key:'shoulder',label:'Shoulder Stability', gold:{ideal:15,min:6,max:26},    weight:.25, scale:60},
-      // Real torso=1.1°(0.2–5.2), Synth=2.7°(0.6–5.3) → 70/30: ideal=2, min=0, max=5
-      {key:'torso',   label:'Body Swing',         gold:{ideal:2,min:0,max:5},      weight:.25, scale:30},
-      // Real wrist=12.1°(2.4–74), Synth=44.7°(30.3–55) → 70/30: ideal=22, min=11, max=68
-      {key:'wrist',   label:'Wrist Alignment',   gold:{ideal:22,min:11,max:68},    weight:.15, scale:90},
+      {key:'elbow',   label:'Elbow Flexion',     gold:{ideal:46,min:30,max:117},  weight:.3,  scale:180},
+      {key:'shoulder',label:'Shoulder Stability', gold:{ideal:15,min:6,max:26},    weight:.2, scale:60},
+      {key:'torso',   label:'Body Swing',         gold:{ideal:2,min:0,max:5},      weight:.2, scale:30},
+      {key:'wrist',   label:'Wrist Alignment',   gold:{ideal:22,min:11,max:68},    weight:.1, scale:90},
+      {key:'curlPlane',label:'Curl Plane',        gold:{ideal:15,min:0,max:35},     weight:.2, scale:90},
     ],
+    maxShoulderForRep:40, // reject if shoulder angle exceeds this (= lateral raise)
+    maxCurlPlaneForRep:50, // reject if curl plane exceeds this (= sideways motion)
     calSteps:{stand:'🧍 Arms Extended (5s)',standDesc:'Hold arms straight at sides',good:'✅ 5 Good Curls',goodDesc:'Controlled curl, elbows pinned',bad:'❌ 3 Swinging Curls',badDesc:'Swing your body to cheat'},
-    filters:{elbow:[1.5,0.01],shoulder:[1.0,0.008],torso:[1.2,0.008],wrist:[0.8,0.005]},
+    filters:{elbow:[1.5,0.01],shoulder:[1.0,0.008],torso:[1.2,0.008],wrist:[0.8,0.005],curlPlane:[0.8,0.005]},
     repDetect:{descentTH:20,returnTH:12,minBetweenMs:1500,bottomRise:10,minRepMs:800,minDepthDeg:20},
     joints:[11,12,13,14,15,16,23,24],
     bones:[[11,13],[13,15],[12,14],[14,16],[11,12],[11,23],[12,24],[23,24]],
     spine:new Set(['11-12','11-23','12-24','23-24']),
     coachGood:['Perfect curl!','Great control!','Strict form!','Solid rep!','No swing—excellent!'],
-    warnings:{torso:'⚠ NO SWINGING'},
+    warnings:{torso:'⚠ NO SWINGING',shoulder:'⚠ ELBOWS DRIFTING',curlPlane:'⚠ CURL UP NOT OUT'},
     coachCues:{
       elbow:{low:'Curl higher — bring the bar closer to shoulders.',high:'Control the descent — don\'t just drop.'},
       shoulder:{high:'Pin your elbows to your sides — upper arm shouldn\'t move.'},
       torso:{high:'Stop swinging! Brace your core, only forearms move.'},
       wrist:{high:'Keep wrists neutral — don\'t curl them inward.'},
+      curlPlane:{high:'Curl straight UP toward shoulders — not outward to the sides.'},
     },
   },
   hammer_curl: {
@@ -338,27 +339,31 @@ const EX_DB = {
     repDir:'down',
     depthLabel:'CURL',
     visCheck:[11,12,13,14,15,16,23,24],
-    // 126 reps (real only): elbow p50=82.3°(19.3–119.9°)
-    // No synthetic, so using real data directly with wider tolerance
+    criticalJoints:[13,14,15,16],
+    criticalVisMin:0.5,
     metrics:[
-      {key:'elbow',   label:'Elbow Flexion',     gold:{ideal:82,min:19,max:120},  weight:.35, scale:180},
-      {key:'shoulder',label:'Shoulder Stability', gold:{ideal:10,min:4,max:14},    weight:.25, scale:40},
-      {key:'torso',   label:'Body Swing',         gold:{ideal:2,min:0,max:6},      weight:.25, scale:30},
-      {key:'wrist',   label:'Wrist Alignment',   gold:{ideal:30,min:5,max:76},    weight:.15, scale:90},
+      {key:'elbow',   label:'Elbow Flexion',     gold:{ideal:82,min:19,max:120},  weight:.3,  scale:180},
+      {key:'shoulder',label:'Shoulder Stability', gold:{ideal:10,min:4,max:14},    weight:.2, scale:40},
+      {key:'torso',   label:'Body Swing',         gold:{ideal:2,min:0,max:6},      weight:.2, scale:30},
+      {key:'wrist',   label:'Wrist Alignment',   gold:{ideal:30,min:5,max:76},    weight:.1, scale:90},
+      {key:'curlPlane',label:'Curl Plane',        gold:{ideal:15,min:0,max:35},     weight:.2, scale:90},
     ],
+    maxShoulderForRep:40,
+    maxCurlPlaneForRep:50,
     calSteps:{stand:'🧍 Arms Extended (5s)',standDesc:'Hold arms straight, neutral grip',good:'✅ 5 Good Hammer Curls',goodDesc:'Controlled curl, thumbs up',bad:'❌ 3 Swinging Curls',badDesc:'Swing your body to cheat'},
-    filters:{elbow:[1.5,0.01],shoulder:[1.0,0.008],torso:[1.2,0.008],wrist:[0.8,0.005]},
+    filters:{elbow:[1.5,0.01],shoulder:[1.0,0.008],torso:[1.2,0.008],wrist:[0.8,0.005],curlPlane:[0.8,0.005]},
     repDetect:{descentTH:20,returnTH:12,minBetweenMs:1500,bottomRise:10,minRepMs:800,minDepthDeg:20},
     joints:[11,12,13,14,15,16,23,24],
     bones:[[11,13],[13,15],[12,14],[14,16],[11,12],[11,23],[12,24],[23,24]],
     spine:new Set(['11-12','11-23','12-24','23-24']),
     coachGood:['Solid hammer curl!','Great neutral grip!','Perfect control!','Strict form!','Clean rep!'],
-    warnings:{torso:'⚠ NO SWINGING'},
+    warnings:{torso:'⚠ NO SWINGING',shoulder:'⚠ ELBOWS DRIFTING',curlPlane:'⚠ CURL UP NOT OUT'},
     coachCues:{
       elbow:{low:'Curl higher — bring dumbbells to shoulder level.',high:'Don\'t let arms flare out.'},
       shoulder:{high:'Pin elbows to sides — upper arms stay still.'},
       torso:{high:'No body momentum! Brace core, isolate biceps.'},
       wrist:{high:'Keep thumbs up — maintain neutral grip.'},
+      curlPlane:{high:'Curl straight UP — not outward to the sides.'},
     },
   },
   push_up: {
@@ -479,7 +484,15 @@ function computeAngles(lm){
     const el=wAvg(a3(lm[11],lm[13],lm[15]),vis(lm,11,13,15),a3(lm[12],lm[14],lm[16]),vis(lm,12,14,16));
     const sh=wAvg(a3(lm[23],lm[11],lm[13]),vis(lm,23,11,13),a3(lm[24],lm[12],lm[14]),vis(lm,24,12,14));
     const wd=(()=>{const d=(e,w)=>{const dx=Math.abs(w.x-e.x),dy=Math.abs(w.y-e.y);return dy<0.001?45:Math.atan2(dx,dy)*180/Math.PI};return(d(lm[13],lm[15])+d(lm[14],lm[16]))/2})();
-    return{elbow:el,shoulder:sh,torso:tLean(lm),wrist:wd,hipY:hipY(lm)};
+    // Curl plane: 0°= wrist straight below/above elbow (good curl), 90°= wrist far to the side (lateral raise)
+    // Measures horizontal deviation of wrist relative to elbow
+    const cp=(()=>{
+      const plane=(e,w)=>{const dx=Math.abs(w.x-e.x);const dy=Math.abs(w.y-e.y);return dy<0.001?90:Math.atan2(dx,dy)*180/Math.PI};
+      const L=plane(lm[13],lm[15]),R=plane(lm[14],lm[16]);
+      const Lv=vis(lm,13,15),Rv=vis(lm,14,16);
+      return wAvg(L,Lv,R,Rv);
+    })();
+    return{elbow:el,shoulder:sh,torso:tLean(lm),wrist:wd,curlPlane:cp,hipY:hipY(lm)};
   }
   if(ex==='push_up'){
     const el=wAvg(a3(lm[11],lm[13],lm[15]),vis(lm,11,13,15),a3(lm[12],lm[14],lm[16]),vis(lm,12,14,16));
@@ -504,6 +517,7 @@ let calGoodCount=0,calBadCount=0;
 let phase='standing',smoothPrimary=177,holdC=0,repCount=0,goodReps=0,rejReps=0;
 let repStart=0,minDepthP=180,maxDepthP=0,repErrors=[];
 let repMaxHipY=0,repPostSum=0,repPostN=0,repBadN=0,repMaxBadMetric=0;
+let repMaxShoulder=0,repMaxCurlPlane=0;
 let repBioMin={};
 let smoothPosture=100,lastCoachUpdate=0,lastCoachSpeak=0;
 let repScores=[];
@@ -851,7 +865,7 @@ function getJointColor(val,gold){if(val>=gold.min&&val<=gold.max)return'#2e8b57'
 function drawAngleArc(cx,cy,startA,endA,radius,color){X.beginPath();X.arc(cx,cy,radius,startA,endA);X.strokeStyle=color;X.lineWidth=4;X.globalAlpha=0.6;X.stroke();X.globalAlpha=1}
 
 function exportData(){
-  const d={version:'exerciseai-v15.1',exercise:curEx,exerciseName:curDB.name,timestamp:new Date().toISOString(),standing:SD,thresholds:TH,gold:Object.fromEntries(curDB.metrics.map(m=>[m.key,m.gold])),datasetInfo:{source:curDB.reps+' reps from Riccardo Riccio dataset'},goodValleys:calGoodValleys,badValleys:calBadValleys,stats:{reps:repCount,good:goodReps,rejected:rejReps,scores:repScores}};
+  const d={version:'exerciseai-v15.2',exercise:curEx,exerciseName:curDB.name,timestamp:new Date().toISOString(),standing:SD,thresholds:TH,gold:Object.fromEntries(curDB.metrics.map(m=>[m.key,m.gold])),datasetInfo:{source:curDB.reps+' reps from Riccardo Riccio dataset'},goodValleys:calGoodValleys,badValleys:calBadValleys,stats:{reps:repCount,good:goodReps,rejected:rejReps,scores:repScores}};
   const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='exerciseai_'+curEx+'_'+Date.now()+'.json';a.click();
 }
 
@@ -873,7 +887,22 @@ function onRes(res){
   if(!res.poseLandmarks){X.font='bold 18px DM Sans';X.fillStyle='#c44040';X.textAlign='center';X.fillText('No person detected',CW/2,CH/2);return}
   const lm=res.poseLandmarks;
   const coreVis=vis(lm,...curDB.visCheck);
-  if(coreVis<0.35){X.font='bold 16px DM Sans';X.fillStyle='#c49b2e';X.textAlign='center';X.fillText('Low visibility — step back',CW/2,CH/2);return}
+  if(coreVis<0.5){X.font='bold 16px DM Sans';X.fillStyle='#c49b2e';X.textAlign='center';X.fillText('Low visibility — step back',CW/2,CH/2);return}
+
+  // Strict per-joint check: for curls, each elbow+wrist must be individually visible
+  if(curDB.criticalJoints){
+    const cMin=curDB.criticalVisMin||0.5;
+    let failJoint=null;
+    for(const j of curDB.criticalJoints){
+      if((lm[j]?.visibility||0)<cMin){failJoint=j;break}
+    }
+    if(failJoint!==null){
+      X.font='bold 16px DM Sans';X.fillStyle='#c49b2e';X.textAlign='center';
+      X.fillText('⚠ Can\'t see key joints — adjust camera',CW/2,CH/2);
+      // Don't process frames with missing joints — prevents ghost reps
+      return;
+    }
+  }
 
   // Compute & filter angles
   const raw=computeAngles(lm);if(!raw)return;
@@ -986,8 +1015,14 @@ function onRes(res){
     let wy=22;
     for(const[wk,wMsg]of Object.entries(curDB.warnings)){
       const wVal=angles[wk]||0;
-      const thresh=TH.maxBad||(SD?SD[wk]+10:999);
-      const show=curDB.badDir==='high'?wVal>thresh:(wk==='valgus'?Math.abs(wVal)>10:wVal<thresh);
+      // Per-metric warning thresholds
+      let thresh;
+      if(wk==='shoulder')thresh=curDB.maxShoulderForRep||40;
+      else if(wk==='curlPlane')thresh=curDB.maxCurlPlaneForRep||50;
+      else if(wk==='valgus')thresh=10;
+      else thresh=TH.maxBad||(SD?SD[wk]+10:999);
+      const val=wk==='valgus'?Math.abs(wVal):wVal;
+      const show=val>thresh;
       if(show&&phase!=='standing'){
         X.font='bold 14px DM Sans';X.textAlign='right';X.textBaseline='top';
         const tw=X.measureText(wMsg).width;
@@ -1012,6 +1047,9 @@ function onRes(res){
     if(curDB.badDir==='high'?badEx>0:badEx<0)repBadN++;
     if(angles[bk]>repMaxBadMetric)repMaxBadMetric=angles[bk];
     if(raw.hipY>repMaxHipY)repMaxHipY=raw.hipY;
+    // Track curl validation metrics
+    if(angles.shoulder!==undefined&&angles.shoulder>repMaxShoulder)repMaxShoulder=angles.shoulder;
+    if(angles.curlPlane!==undefined&&angles.curlPlane>repMaxCurlPlane)repMaxCurlPlane=angles.curlPlane;
     // Track bio extremes
     for(const m of curDB.metrics){
       const v=angles[m.key];
@@ -1041,7 +1079,7 @@ function onRes(res){
 
   const nowMs=Date.now();let done=null;
   switch(phase){
-    case'standing':if(pastDown){if(++holdC>=T.hold){phase='descending';repStart=nowMs;minDepthP=k;maxDepthP=k;repErrors=[];holdC=0;repMaxHipY=raw.hipY;repPostSum=0;repPostN=0;repBadN=0;repMaxBadMetric=0;repBioMin={}}}else holdC=0;break;
+    case'standing':if(pastDown){if(++holdC>=T.hold){phase='descending';repStart=nowMs;minDepthP=k;maxDepthP=k;repErrors=[];holdC=0;repMaxHipY=raw.hipY;repPostSum=0;repPostN=0;repBadN=0;repMaxBadMetric=0;repMaxShoulder=0;repMaxCurlPlane=0;repBioMin={}}}else holdC=0;break;
     case'descending':if(pastBot){if(++holdC>=T.hold){phase='bottom';holdC=0}}else if(pastUp){if(++holdC>=T.hold)done=finishRep(nowMs,false)}else holdC=0;break;
     case'bottom':if(leftBot){phase='ascending';holdC=0}break;
     case'ascending':if(pastUp){if(++holdC>=T.hold)done=finishRep(nowMs,true)}else if(backToBot){phase='bottom';holdC=0}else holdC=0;break;
@@ -1067,6 +1105,17 @@ function finishRep(now,full){
   if(SD&&depthAchieved<minDepthDeg){
     rejReps++;showFB('❌ Not enough range of motion','bad');
     Speech.coachSpeak(up?'Press higher.':'Go deeper.');
+    resetRep();return'r';
+  }
+  // Curl-specific rejection: lateral raise or sideways curl
+  if(curDB.maxShoulderForRep&&repMaxShoulder>curDB.maxShoulderForRep){
+    rejReps++;showFB('❌ Not a curl — arms went sideways (shoulder '+Math.round(repMaxShoulder)+'°)','bad');
+    Speech.coachSpeak('That was a lateral raise, not a curl. Pin elbows to sides.');
+    resetRep();return'r';
+  }
+  if(curDB.maxCurlPlaneForRep&&repMaxCurlPlane>curDB.maxCurlPlaneForRep){
+    rejReps++;showFB('❌ Curl outward — keep wrists above elbows (plane '+Math.round(repMaxCurlPlane)+'°)','bad');
+    Speech.coachSpeak('You curled outward. Curl straight up toward shoulders.');
     resetRep();return'r';
   }
   if(badPct>TH.badPct){rejReps++;showFB('❌ Bad form — '+Math.round(badPct)+'%','bad');Speech.coachSpeak('Not counted. Fix form.');resetRep();return'r'}
@@ -1096,11 +1145,11 @@ function finishRep(now,full){
   resetRep();return{n:repCount,sc};
 }
 
-function resetRep(){phase='standing';smoothPrimary=SD?SD[curDB.primaryKey]:177;holdC=0;minDepthP=180;maxDepthP=0;repErrors=[];repMaxHipY=0;repPostSum=0;repPostN=0;repBadN=0;repMaxBadMetric=0;repBioMin={}}
+function resetRep(){phase='standing';smoothPrimary=SD?SD[curDB.primaryKey]:177;holdC=0;minDepthP=180;maxDepthP=0;repErrors=[];repMaxHipY=0;repPostSum=0;repPostN=0;repBadN=0;repMaxBadMetric=0;repMaxShoulder=0;repMaxCurlPlane=0;repBioMin={}}
 
 // ═══ INIT ═══
 buildExSelector();
-log('v15.1 ready. Select an exercise.');
+log('v15.2 ready. Select an exercise.');
 </script>
 </body>
 </html>
