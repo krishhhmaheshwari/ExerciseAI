@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ExerciseAI v15.2 — HCL Healthcare</title>
+<title>ExerciseAI v16 — HCL Healthcare</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -63,20 +63,20 @@ body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:#eaeff5
 
 /* OVERLAYS */
 .fb{position:absolute;bottom:12px;left:12px;right:12px;z-index:10;display:flex;flex-direction:column;gap:4px;align-items:center}
-.fb div{padding:10px 18px;border-radius:12px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;animation:su .2s ease;box-shadow:0 4px 20px rgba(0,0,0,0.2);max-width:90%;text-align:center}
+.fb div{padding:12px 22px;border-radius:12px;font-size:16px;font-weight:700;font-family:'DM Sans',sans-serif;animation:su .2s ease;box-shadow:0 4px 20px rgba(0,0,0,0.2);max-width:90%;text-align:center}
 .fb .good{background:rgba(46,139,87,0.94);color:#fff}
 .fb .bad{background:rgba(196,64,64,0.94);color:#fff}
 .fb .warn{background:rgba(196,155,46,0.94);color:#fff}
 .fb .info{background:rgba(0,102,174,0.94);color:#fff}
 @keyframes su{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.rep-flash{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:12;font-family:'DM Serif Display',Georgia,serif;font-size:80px;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,0.5);opacity:0;pointer-events:none}
+.rep-flash{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:12;font-family:'DM Serif Display',Georgia,serif;font-size:110px;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,0.5);opacity:0;pointer-events:none}
 .rep-flash.show{animation:repPop 0.8s ease-out forwards}
 @keyframes repPop{0%{opacity:0;transform:translate(-50%,-50%) scale(0.3)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}40%{transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1) translateY(-30px)}}
 
-.depth-gauge{position:absolute;left:14px;top:50%;transform:translateY(-50%);z-index:8;width:30px;height:200px;border-radius:15px;background:rgba(0,0,0,0.5);border:2px solid rgba(255,255,255,0.1);overflow:hidden;display:none}
-.depth-gauge-fill{position:absolute;bottom:0;width:100%;border-radius:0 0 13px 13px;transition:height 0.12s,background 0.15s}
-.depth-gauge-label{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:8px;color:rgba(255,255,255,0.5);white-space:nowrap;font-weight:600}
-.depth-gauge-val{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:800;color:#fff;white-space:nowrap}
+.depth-gauge{position:absolute;left:14px;top:50%;transform:translateY(-50%);z-index:8;width:40px;height:240px;border-radius:20px;background:rgba(0,0,0,0.5);border:2px solid rgba(255,255,255,0.1);overflow:hidden;display:none}
+.depth-gauge-fill{position:absolute;bottom:0;width:100%;border-radius:0 0 18px 18px;transition:height 0.12s,background 0.15s}
+.depth-gauge-label{position:absolute;top:-24px;left:50%;transform:translateX(-50%);font-size:10px;color:rgba(255,255,255,0.5);white-space:nowrap;font-weight:700}
+.depth-gauge-val{position:absolute;bottom:-24px;left:50%;transform:translateX(-50%);font-size:14px;font-weight:800;color:#fff;white-space:nowrap}
 .depth-target{position:absolute;width:100%;height:4px;background:rgba(46,139,87,0.6);left:0}
 .form-ring{position:absolute;top:14px;left:14px;z-index:8;display:none}
 
@@ -93,15 +93,15 @@ body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:#eaeff5
 .btn-sec{background:var(--blue-pale);color:var(--blue);border:1.5px solid #c0d8ee;font-size:11px;padding:9px}
 .btn-switch{background:var(--amber-pale);color:#8a6d00;border:1.5px solid #e0c870;font-size:11px;padding:9px}
 
-.rep-dash{text-align:center;padding:4px 0}
-.rep-big{font-family:'DM Serif Display',Georgia,serif;font-size:46px;color:var(--ink);line-height:1}
-.rep-lbl{font-size:10px;color:var(--muted);font-weight:500;margin-top:2px}
-.phase-pill{display:inline-block;padding:3px 12px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:1px;margin-top:4px}
-.rep-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
-.rep-stat{text-align:center;padding:6px;background:var(--blue-wash);border-radius:8px}
-.rv{font-size:16px;font-weight:800}.rl{font-size:8px;color:var(--muted);font-weight:600;letter-spacing:0.5px}
-.rep-history{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
-.rep-badge{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff}
+.rep-dash{text-align:center;padding:8px 0}
+.rep-big{font-family:'DM Serif Display',Georgia,serif;font-size:80px;color:var(--ink);line-height:1}
+.rep-lbl{font-size:13px;color:var(--muted);font-weight:600;margin-top:2px;letter-spacing:1px;text-transform:uppercase}
+.phase-pill{display:inline-block;padding:5px 18px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:1px;margin-top:6px}
+.rep-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.rep-stat{text-align:center;padding:10px 6px;background:var(--blue-wash);border-radius:10px}
+.rv{font-size:28px;font-weight:800}.rl{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:0.5px;margin-top:2px}
+.rep-history{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.rep-badge{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff}
 .rep-badge.exc{background:#2e8b57}.rep-badge.ok{background:#5ba67d}.rep-badge.mid{background:#c49b2e}.rep-badge.low{background:#c44040}
 
 .bio-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -118,18 +118,18 @@ body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:#eaeff5
 .bio-bar-ideal{position:absolute;top:0;height:100%;background:rgba(46,139,87,0.15);border-radius:2px}
 .bio-bar-fill{position:absolute;top:0;left:0;height:100%;border-radius:2px;transition:width 0.15s}
 
-.meter-box{margin-top:8px;padding:10px;background:var(--blue-wash);border-radius:10px}
+.meter-box{margin-top:10px;padding:12px;background:var(--blue-wash);border-radius:10px}
 .meter-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
-.mk{font-size:10px;font-weight:600;color:var(--text)}.mv{font-size:14px;font-weight:800}
-.meter{height:6px;background:var(--border-light);border-radius:3px;overflow:hidden}.meter-fill{height:100%;border-radius:3px;transition:width 0.2s,background 0.2s}
+.mk{font-size:12px;font-weight:700;color:var(--text)}.mv{font-size:22px;font-weight:800}
+.meter{height:8px;background:var(--border-light);border-radius:4px;overflow:hidden}.meter-fill{height:100%;border-radius:4px;transition:width 0.2s,background 0.2s}
 
 .coach-box{padding:14px;border-radius:12px;border:1.5px solid var(--border-light);transition:all 0.2s}
 .coach-box.good{border-color:var(--green-soft);background:var(--green-pale)}
 .coach-box.issue{border-color:#e0c870;background:var(--amber-pale)}
-.coach-top{font-size:12px;font-weight:700;margin-bottom:4px}
-.coach-msg{font-size:11px;color:var(--text);line-height:1.4}
-.coach-fix{font-size:10px;color:var(--muted);margin-top:4px;white-space:pre-line}
-.coach-encourage{font-size:10px;color:var(--green);margin-top:4px;font-weight:600}
+.coach-top{font-size:14px;font-weight:700;margin-bottom:4px}
+.coach-msg{font-size:13px;color:var(--text);line-height:1.4}
+.coach-fix{font-size:11px;color:var(--muted);margin-top:4px;white-space:pre-line}
+.coach-encourage{font-size:11px;color:var(--green);margin-top:4px;font-weight:600}
 
 .cal-step{padding:8px 12px;border-radius:8px;border:1.5px solid var(--border-light);margin-bottom:6px;opacity:0.4;transition:all 0.2s}
 .cal-step h4{font-size:11px;font-weight:700}.cal-step p{font-size:9px;color:var(--muted)}.cal-step .st{font-size:10px;font-weight:700;color:var(--blue);margin-top:2px}
@@ -158,7 +158,7 @@ body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:#eaeff5
   </div>
   <div class="hdr-right">
     <span class="hdr-tag" id="exTag">SELECT EXERCISE</span>
-    <span class="hdr-tag">v15.2</span>
+    <span class="hdr-tag">v16</span>
     <button class="hdr-voice" id="voiceBtn" onclick="toggleVoice()" title="Toggle voice">🔊</button>
   </div>
 </div>
@@ -166,12 +166,12 @@ body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:#eaeff5
 
 <div class="main">
 <div class="vid-col">
-  <video id="v" playsinline webkit-playsinline muted></video>
+  <video id="v" playsinline muted></video>
   <canvas id="c"></canvas>
   <div class="fb" id="fb"></div>
   <div class="rep-flash" id="repFlash"></div>
   <div class="depth-gauge" id="depthGauge"><div class="depth-gauge-label">DEPTH</div><div class="depth-gauge-fill" id="depthFill"></div><div class="depth-gauge-val" id="depthVal">0%</div><div class="depth-target" style="bottom:80%"></div></div>
-  <div class="form-ring"><canvas id="formRing" width="80" height="80"></canvas></div>
+  <div class="form-ring"><canvas id="formRing" width="100" height="100"></canvas></div>
 
   <div class="splash" id="splash">
     <div class="splash-icon">💪</div>
@@ -243,12 +243,12 @@ body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:#eaeff5
     </div>
   </div>
 
-  <div class="sec"><div class="sec-label">Debug Log</div><div class="log" id="log">v15.2 ready.<br></div></div>
+  <div class="sec"><div class="sec-label">Debug Log</div><div class="log" id="log">v16 ready.<br></div></div>
 </div>
 </div>
 
 <div class="ftr">
-  <div class="ftr-left">ExerciseAI v15.2 · HCL Healthcare Digital Therapy</div>
+  <div class="ftr-left">ExerciseAI v16 · HCL Healthcare Digital Therapy</div>
   <div class="ftr-right">Multi-Exercise · Data-Validated · On-Device</div>
 </div>
 </div>
@@ -315,11 +315,12 @@ const EX_DB = {
       {key:'wrist',   label:'Wrist Alignment',   gold:{ideal:22,min:11,max:68},    weight:.1, scale:90},
       {key:'curlPlane',label:'Curl Plane',        gold:{ideal:15,min:0,max:35},     weight:.2, scale:90},
     ],
-    maxShoulderForRep:40, // reject if shoulder angle exceeds this (= lateral raise)
-    maxCurlPlaneForRep:50, // reject if curl plane exceeds this (= sideways motion)
+    maxShoulderForRep:28, // tightened from 40 — reject lateral raises earlier
+    maxCurlPlaneForRep:40, // tightened from 50 — reject sideways curls earlier
+    minPeakElbow:120, // NEW: elbow must close below this angle — rejects straight-arm swings
     calSteps:{stand:'🧍 Arms Extended (5s)',standDesc:'Hold arms straight at sides',good:'✅ 5 Good Curls',goodDesc:'Controlled curl, elbows pinned',bad:'❌ 3 Swinging Curls',badDesc:'Swing your body to cheat'},
     filters:{elbow:[1.5,0.01],shoulder:[1.0,0.008],torso:[1.2,0.008],wrist:[0.8,0.005],curlPlane:[0.8,0.005]},
-    repDetect:{descentTH:20,returnTH:12,minBetweenMs:1500,bottomRise:10,minRepMs:800,minDepthDeg:20},
+    repDetect:{descentTH:30,returnTH:15,minBetweenMs:1800,bottomRise:12,minRepMs:1000,minDepthDeg:35},
     joints:[11,12,13,14,15,16,23,24],
     bones:[[11,13],[13,15],[12,14],[14,16],[11,12],[11,23],[12,24],[23,24]],
     spine:new Set(['11-12','11-23','12-24','23-24']),
@@ -348,11 +349,12 @@ const EX_DB = {
       {key:'wrist',   label:'Wrist Alignment',   gold:{ideal:30,min:5,max:76},    weight:.1, scale:90},
       {key:'curlPlane',label:'Curl Plane',        gold:{ideal:15,min:0,max:35},     weight:.2, scale:90},
     ],
-    maxShoulderForRep:40,
-    maxCurlPlaneForRep:50,
+    maxShoulderForRep:28,
+    maxCurlPlaneForRep:40,
+    minPeakElbow:120, // NEW: must actually curl — reject straight-arm motions
     calSteps:{stand:'🧍 Arms Extended (5s)',standDesc:'Hold arms straight, neutral grip',good:'✅ 5 Good Hammer Curls',goodDesc:'Controlled curl, thumbs up',bad:'❌ 3 Swinging Curls',badDesc:'Swing your body to cheat'},
     filters:{elbow:[1.5,0.01],shoulder:[1.0,0.008],torso:[1.2,0.008],wrist:[0.8,0.005],curlPlane:[0.8,0.005]},
-    repDetect:{descentTH:20,returnTH:12,minBetweenMs:1500,bottomRise:10,minRepMs:800,minDepthDeg:20},
+    repDetect:{descentTH:30,returnTH:15,minBetweenMs:1800,bottomRise:12,minRepMs:1000,minDepthDeg:35},
     joints:[11,12,13,14,15,16,23,24],
     bones:[[11,13],[13,15],[12,14],[14,16],[11,12],[11,23],[12,24],[23,24]],
     spine:new Set(['11-12','11-23','12-24','23-24']),
@@ -455,34 +457,32 @@ const Speech={
   _isIOS:/iPad|iPhone|iPod/.test(navigator.userAgent)||
     (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),
   unlock(){
-    // Must be called from a direct user tap — but NOT from startCam/startCamSkip
-    // because iOS Safari only allows one privileged API per gesture (camera needs it)
     if(this._unlocked)return;
     try{const ctx=new(window.AudioContext||window.webkitAudioContext)();
-      const buf=ctx.createBuffer(1,1,22050);const src=ctx.createBufferSource();
-      src.buffer=buf;src.connect(ctx.destination);src.start(0);
+      const osc=ctx.createOscillator();const g=ctx.createGain();g.gain.value=0.001;
+      osc.connect(g);g.connect(ctx.destination);osc.start(0);osc.stop(ctx.currentTime+0.01);
       ctx.resume().catch(()=>{});
     }catch(e){}
     const u=new SpeechSynthesisUtterance(' ');
     u.volume=0.01;u.rate=2;
     speechSynthesis.speak(u);
     this._unlocked=true;
-    console.log('[Speech] unlocked, iOS='+this._isIOS);
   },
   speak(t,f=false){
     if(!voiceOn)return;
     const n=Date.now();
     if(!f&&n<this.lockUntil)return;
-    // iOS: never call cancel() — it re-locks the engine
+    // iOS: never call cancel() — it re-locks the engine permanently
     if(f&&!this._isIOS){speechSynthesis.cancel()}
+    // On iOS if already speaking and not forced, skip to avoid queue jam
     if(this._isIOS&&speechSynthesis.speaking&&!f)return;
     if(this._timer){clearTimeout(this._timer);this._timer=null}
     const u=new SpeechSynthesisUtterance(t);
-    u.rate=1.0;u.pitch=1.0;u.volume=0.9;
+    u.rate=1.0;u.pitch=1.0;u.volume=1.0;
     const e=Math.max(this.MIN_GAP,t.length*80+500);
     this.lockUntil=Date.now()+e;this.locked=true;
     u.onend=()=>{this.locked=false};
-    u.onerror=(ev)=>{this.locked=false;console.warn('[Speech] error:',ev.error)};
+    u.onerror=()=>{this.locked=false};
     this._timer=setTimeout(()=>{this.locked=false},e+1500);
     speechSynthesis.speak(u);
   },
@@ -494,6 +494,7 @@ const Speech={
     if(this._timer){clearTimeout(this._timer);this._timer=null}
   }
 };
+// Chrome: periodic resume keeps synth alive (skip on iOS — causes issues)
 if(!Speech._isIOS){setInterval(()=>{if(speechSynthesis.paused)speechSynthesis.resume()},3000)}
 function toggleVoice(){voiceOn=!voiceOn;Speech.unlock();$('voiceBtn').textContent=voiceOn?'🔊':'🔇';$('voiceBtn').classList.toggle('muted',!voiceOn);if(!voiceOn)Speech.cancel()}
 
@@ -667,27 +668,11 @@ function checkSavedCal(){
 
 // ═══ CAMERA ═══
 async function initCamera(){
-  // iOS Safari blocks getUserMedia on file:// — must use localhost
-  if(location.protocol==='file:'){
-    throw new Error('On iOS, open via http://localhost (not file://). Run: python3 -m http.server 8000');
-  }
-  let s;
-  try{
-    s=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},facingMode:'user'}});
-  }catch(e){
-    // Provide clearer message for iOS permission issues
-    if(e.name==='NotAllowedError'){
-      throw new Error('Camera blocked. On iOS: Settings → Safari → Camera → Allow. Then reload.');
-    }
-    throw e;
-  }
-  V.srcObject=s;
-  V.setAttribute('playsinline','');V.setAttribute('muted','');
-  try{await V.play()}catch(e){log('Video play warning: '+e.message)}
+  const s=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},facingMode:'user'}});
+  V.srcObject=s;V.play();
   await new Promise(r=>{if(V.readyState>=2)return r();V.onloadeddata=()=>r()});
+  Speech.unlock(); // safe here — camera already acquired the gesture
   log('Camera: '+V.videoWidth+'x'+V.videoHeight);
-  // Unlock speech now that camera is running (we're post-gesture but iOS allows it here)
-  Speech.unlock();
   if(!pose){
     log('Loading BlazePose (complexity=2)...');
     pose=new Pose({locateFile:f=>'https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/'+f});
@@ -909,19 +894,19 @@ function updateCoachUI(issues){
 }
 
 function drawFormRing(score){
-  const rc=$('formRing');const rx=rc.getContext('2d');rx.clearRect(0,0,80,80);
+  const rc=$('formRing');const rx=rc.getContext('2d');rx.clearRect(0,0,100,100);
   const pct=score/100;const color=score>=80?'#2e8b57':score>=50?'#c49b2e':'#c44040';
-  rx.beginPath();rx.arc(40,40,32,0,Math.PI*2);rx.strokeStyle='rgba(255,255,255,0.1)';rx.lineWidth=6;rx.stroke();
-  rx.beginPath();rx.arc(40,40,32,-Math.PI/2,-Math.PI/2+pct*Math.PI*2);rx.strokeStyle=color;rx.lineWidth=6;rx.lineCap='round';rx.stroke();
-  rx.font='bold 18px DM Sans';rx.textAlign='center';rx.textBaseline='middle';rx.fillStyle='#fff';rx.fillText(score,40,38);
-  rx.font='7px DM Sans';rx.fillStyle='rgba(255,255,255,0.5)';rx.fillText('FORM',40,52);
+  rx.beginPath();rx.arc(50,50,40,0,Math.PI*2);rx.strokeStyle='rgba(255,255,255,0.1)';rx.lineWidth=7;rx.stroke();
+  rx.beginPath();rx.arc(50,50,40,-Math.PI/2,-Math.PI/2+pct*Math.PI*2);rx.strokeStyle=color;rx.lineWidth=7;rx.lineCap='round';rx.stroke();
+  rx.font='bold 24px DM Sans';rx.textAlign='center';rx.textBaseline='middle';rx.fillStyle='#fff';rx.fillText(score,50,47);
+  rx.font='9px DM Sans';rx.fillStyle='rgba(255,255,255,0.5)';rx.fillText('FORM',50,65);
 }
 
 function getJointColor(val,gold){if(val>=gold.min&&val<=gold.max)return'#2e8b57';const d=val<gold.min?gold.min-val:val-gold.max;return d<5?'#c49b2e':'#c44040'}
 function drawAngleArc(cx,cy,startA,endA,radius,color){X.beginPath();X.arc(cx,cy,radius,startA,endA);X.strokeStyle=color;X.lineWidth=4;X.globalAlpha=0.6;X.stroke();X.globalAlpha=1}
 
 function exportData(){
-  const d={version:'exerciseai-v15.2',exercise:curEx,exerciseName:curDB.name,timestamp:new Date().toISOString(),standing:SD,thresholds:TH,gold:Object.fromEntries(curDB.metrics.map(m=>[m.key,m.gold])),datasetInfo:{source:curDB.reps+' reps from Riccardo Riccio dataset'},goodValleys:calGoodValleys,badValleys:calBadValleys,stats:{reps:repCount,good:goodReps,rejected:rejReps,scores:repScores}};
+  const d={version:'exerciseai-v16',exercise:curEx,exerciseName:curDB.name,timestamp:new Date().toISOString(),standing:SD,thresholds:TH,gold:Object.fromEntries(curDB.metrics.map(m=>[m.key,m.gold])),datasetInfo:{source:curDB.reps+' reps from Riccardo Riccio dataset'},goodValleys:calGoodValleys,badValleys:calBadValleys,stats:{reps:repCount,good:goodReps,rejected:rejReps,scores:repScores}};
   const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='exerciseai_'+curEx+'_'+Date.now()+'.json';a.click();
 }
 
@@ -940,10 +925,10 @@ function onRes(res){
   C.style.width=renderW+'px';C.style.height=renderH+'px';C.style.left=offX+'px';C.style.top=offY+'px';
   CW=C.width;CH=C.height;
 
-  if(!res.poseLandmarks){X.font='bold 18px DM Sans';X.fillStyle='#c44040';X.textAlign='center';X.fillText('No person detected',CW/2,CH/2);return}
+  if(!res.poseLandmarks){X.font='bold 24px DM Sans';X.fillStyle='#c44040';X.textAlign='center';X.fillText('No person detected',CW/2,CH/2);return}
   const lm=res.poseLandmarks;
   const coreVis=vis(lm,...curDB.visCheck);
-  if(coreVis<0.5){X.font='bold 16px DM Sans';X.fillStyle='#c49b2e';X.textAlign='center';X.fillText('Low visibility — step back',CW/2,CH/2);return}
+  if(coreVis<0.5){X.font='bold 22px DM Sans';X.fillStyle='#c49b2e';X.textAlign='center';X.fillText('Low visibility — step back',CW/2,CH/2);return}
 
   // Strict per-joint check: for curls, each elbow+wrist must be individually visible
   if(curDB.criticalJoints){
@@ -953,7 +938,7 @@ function onRes(res){
       if((lm[j]?.visibility||0)<cMin){failJoint=j;break}
     }
     if(failJoint!==null){
-      X.font='bold 16px DM Sans';X.fillStyle='#c49b2e';X.textAlign='center';
+      X.font='bold 22px DM Sans';X.fillStyle='#c49b2e';X.textAlign='center';
       X.fillText('⚠ Can\'t see key joints — adjust camera',CW/2,CH/2);
       // Don't process frames with missing joints — prevents ghost reps
       return;
@@ -1052,7 +1037,7 @@ function onRes(res){
   X.beginPath();X.moveTo(mx(sx),my(sy));X.lineTo(mx(hxp),my(hyp));X.stroke();X.setLineDash([]);
 
   // Primary metric label on video
-  X.font='bold 15px DM Sans';X.textAlign='center';X.textBaseline='middle';
+  X.font='bold 20px DM Sans';X.textAlign='center';X.textBaseline='middle';
   const bx=mx((sx+hxp)/2),by=my((sy+hyp)/2);
   X.strokeStyle='rgba(0,0,0,0.6)';X.lineWidth=4;
   X.strokeText(Math.round(angles[bk])+'°',bx+22,by);X.fillStyle=lC;X.fillText(Math.round(angles[bk])+'°',bx+22,by);
@@ -1064,7 +1049,7 @@ function onRes(res){
   X.fillText(`FPS:${fps}  ${hudParts}  VIS:${Math.round(coreVis*100)}%  ${phase}`,6,4);
 
   // Phase label
-  if(TH){const pc={standing:'#8a96a8',descending:'#c49b2e',bottom:'#2e8b57',ascending:'#0066AE'};X.font='bold 15px DM Sans';X.textAlign='center';X.textBaseline='bottom';X.fillStyle=pc[phase]||'#888';X.fillText(phase.toUpperCase(),CW/2,CH-10)}
+  if(TH){const pc={standing:'#8a96a8',descending:'#c49b2e',bottom:'#2e8b57',ascending:'#0066AE'};X.font='bold 22px DM Sans';X.textAlign='center';X.textBaseline='bottom';X.fillStyle=pc[phase]||'#888';X.fillText(phase.toUpperCase(),CW/2,CH-12)}
 
   // Warnings
   if(TH&&curDB.warnings){
@@ -1080,10 +1065,10 @@ function onRes(res){
       const val=wk==='valgus'?Math.abs(wVal):wVal;
       const show=val>thresh;
       if(show&&phase!=='standing'){
-        X.font='bold 14px DM Sans';X.textAlign='right';X.textBaseline='top';
+        X.font='bold 20px DM Sans';X.textAlign='right';X.textBaseline='top';
         const tw=X.measureText(wMsg).width;
-        X.fillStyle='rgba(196,64,64,0.9)';X.beginPath();X.roundRect(CW-tw-22,wy,tw+18,28,6);X.fill();
-        X.fillStyle='#fff';X.fillText(wMsg,CW-12,wy+4);wy+=34;
+        X.fillStyle='rgba(196,64,64,0.9)';X.beginPath();X.roundRect(CW-tw-26,wy,tw+22,34,8);X.fill();
+        X.fillStyle='#fff';X.fillText(wMsg,CW-14,wy+5);wy+=40;
       }
     }
   }
@@ -1174,6 +1159,12 @@ function finishRep(now,full){
     Speech.coachSpeak('You curled outward. Curl straight up toward shoulders.');
     resetRep();return'r';
   }
+  // Reject straight-arm swings: elbow must actually close below threshold
+  if(curDB.minPeakElbow&&repBioMin[pk]!==undefined&&repBioMin[pk]>curDB.minPeakElbow){
+    rejReps++;showFB('❌ Arms barely bent — curl fully (elbow '+Math.round(repBioMin[pk])+'°)','bad');
+    Speech.coachSpeak('Bend your elbows more. That was not a curl.');
+    resetRep();return'r';
+  }
   if(badPct>TH.badPct){rejReps++;showFB('❌ Bad form — '+Math.round(badPct)+'%','bad');Speech.coachSpeak('Not counted. Fix form.');resetRep();return'r'}
   if(avgP<40){rejReps++;showFB('❌ Poor form','bad');resetRep();return'r'}
 
@@ -1205,7 +1196,7 @@ function resetRep(){phase='standing';smoothPrimary=SD?SD[curDB.primaryKey]:177;h
 
 // ═══ INIT ═══
 buildExSelector();
-log('v15.2 ready. Select an exercise.');
+log('v16 ready. Select an exercise.');
 </script>
 </body>
 </html>
