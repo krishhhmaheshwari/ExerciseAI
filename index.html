@@ -166,7 +166,7 @@ body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:#eaeff5
 
 <div class="main">
 <div class="vid-col">
-  <video id="v" playsinline muted></video>
+  <video id="v" playsinline webkit-playsinline muted></video>
   <canvas id="c"></canvas>
   <div class="fb" id="fb"></div>
   <div class="rep-flash" id="repFlash"></div>
@@ -455,29 +455,26 @@ const Speech={
   _isIOS:/iPad|iPhone|iPod/.test(navigator.userAgent)||
     (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),
   unlock(){
-    // Must be called from a direct user tap/click handler
+    // Must be called from a direct user tap — but NOT from startCam/startCamSkip
+    // because iOS Safari only allows one privileged API per gesture (camera needs it)
     if(this._unlocked)return;
-    // Unlock Web Audio context (helps iOS honor audio)
     try{const ctx=new(window.AudioContext||window.webkitAudioContext)();
       const buf=ctx.createBuffer(1,1,22050);const src=ctx.createBufferSource();
       src.buffer=buf;src.connect(ctx.destination);src.start(0);
       ctx.resume().catch(()=>{});
     }catch(e){}
-    // Unlock speechSynthesis
     const u=new SpeechSynthesisUtterance(' ');
     u.volume=0.01;u.rate=2;
     speechSynthesis.speak(u);
     this._unlocked=true;
-    console.log('[Speech] unlocked via user gesture, iOS='+this._isIOS);
+    console.log('[Speech] unlocked, iOS='+this._isIOS);
   },
   speak(t,f=false){
     if(!voiceOn)return;
     const n=Date.now();
     if(!f&&n<this.lockUntil)return;
-    // iOS: never call cancel() — it re-locks the engine.
-    // Instead, just let the queue flush. For forced speech, cancel only on non-iOS.
+    // iOS: never call cancel() — it re-locks the engine
     if(f&&!this._isIOS){speechSynthesis.cancel()}
-    // On iOS if already speaking and not forced, skip
     if(this._isIOS&&speechSynthesis.speaking&&!f)return;
     if(this._timer){clearTimeout(this._timer);this._timer=null}
     const u=new SpeechSynthesisUtterance(t);
@@ -486,7 +483,6 @@ const Speech={
     this.lockUntil=Date.now()+e;this.locked=true;
     u.onend=()=>{this.locked=false};
     u.onerror=(ev)=>{this.locked=false;console.warn('[Speech] error:',ev.error)};
-    // Fallback unlock in case onend never fires
     this._timer=setTimeout(()=>{this.locked=false},e+1500);
     speechSynthesis.speak(u);
   },
@@ -498,7 +494,6 @@ const Speech={
     if(this._timer){clearTimeout(this._timer);this._timer=null}
   }
 };
-// Chrome desktop: periodic resume to keep synth alive (skip on iOS)
 if(!Speech._isIOS){setInterval(()=>{if(speechSynthesis.paused)speechSynthesis.resume()},3000)}
 function toggleVoice(){voiceOn=!voiceOn;Speech.unlock();$('voiceBtn').textContent=voiceOn?'🔊':'🔇';$('voiceBtn').classList.toggle('muted',!voiceOn);if(!voiceOn)Speech.cancel()}
 
@@ -672,10 +667,27 @@ function checkSavedCal(){
 
 // ═══ CAMERA ═══
 async function initCamera(){
-  const s=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},facingMode:'user'}});
-  V.srcObject=s;V.play();
+  // iOS Safari blocks getUserMedia on file:// — must use localhost
+  if(location.protocol==='file:'){
+    throw new Error('On iOS, open via http://localhost (not file://). Run: python3 -m http.server 8000');
+  }
+  let s;
+  try{
+    s=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},facingMode:'user'}});
+  }catch(e){
+    // Provide clearer message for iOS permission issues
+    if(e.name==='NotAllowedError'){
+      throw new Error('Camera blocked. On iOS: Settings → Safari → Camera → Allow. Then reload.');
+    }
+    throw e;
+  }
+  V.srcObject=s;
+  V.setAttribute('playsinline','');V.setAttribute('muted','');
+  try{await V.play()}catch(e){log('Video play warning: '+e.message)}
   await new Promise(r=>{if(V.readyState>=2)return r();V.onloadeddata=()=>r()});
   log('Camera: '+V.videoWidth+'x'+V.videoHeight);
+  // Unlock speech now that camera is running (we're post-gesture but iOS allows it here)
+  Speech.unlock();
   if(!pose){
     log('Loading BlazePose (complexity=2)...');
     pose=new Pose({locateFile:f=>'https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/'+f});
@@ -687,14 +699,12 @@ async function initCamera(){
 
 async function startCam(){
   if(!curEx){alert('Select an exercise first');return}
-  Speech.unlock();
   $('splash').classList.add('gone');
   try{await initCamera();beginCal();requestAnimationFrame(loop)}catch(e){alert('Camera error: '+e.message)}
 }
 
 async function startCamSkip(){
   if(!curEx)return;
-  Speech.unlock();
   $('splash').classList.add('gone');
   try{
     const saved=JSON.parse(localStorage.getItem('exai_cal_'+curEx));
