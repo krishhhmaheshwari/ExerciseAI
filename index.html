@@ -1925,11 +1925,15 @@ async function startPostureCoach() {
     });
     postureState.pose.onResults(onPostureResults);
 
-    postureState.camera = new Camera(video, {
-      onFrame: async () => { if (postureState.active) await postureState.pose.send({ image: video }); },
-      width: 640, height: 480
-    });
-    postureState.camera.start();
+    // Use rAF loop instead of Camera utility (avoids stream conflict)
+    async function postureLoop() {
+      if (!postureState.active) return;
+      if (video.readyState >= 2) {
+        try { await postureState.pose.send({ image: video }); } catch(e) {}
+      }
+      postureState.rafId = requestAnimationFrame(postureLoop);
+    }
+    postureState.rafId = requestAnimationFrame(postureLoop);
 
     // Timer
     postureState.timerInterval = setInterval(updatePostureTimer, 1000);
@@ -1938,13 +1942,13 @@ async function startPostureCoach() {
     speak('Stand or sit naturally. I\'ll begin posture analysis shortly.');
   } catch (err) {
     console.error('Posture camera error:', err);
-    setPostureCoach('Camera access needed. Please allow camera permissions.');
+    setPostureCoach('Error loading pose model. Check your internet connection and refresh.');
   }
 }
 
 function stopPostureCoach() {
   postureState.active = false;
-  if (postureState.camera) postureState.camera.stop();
+  if (postureState.rafId) cancelAnimationFrame(postureState.rafId);
   const v = document.getElementById('postureVideo');
   if (v && v.srcObject) { v.srcObject.getTracks().forEach(t => t.stop()); v.srcObject = null; }
   if (postureState.timerInterval) clearInterval(postureState.timerInterval);
