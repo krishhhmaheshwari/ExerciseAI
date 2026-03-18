@@ -81,6 +81,8 @@ body{font-family:'DM Sans',-apple-system,sans-serif;background:#EDF1F5;color:var
 .camera-panel{flex:1;position:relative;overflow:hidden;min-width:0}
 #videoFeed{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
 #overlayCanvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+#postureVideo{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);position:relative;z-index:1}
+#postureCanvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:6}
 .ref-panel{width:280px;background:#111;border-left:2px solid var(--hcl-teal);display:flex;flex-direction:column;position:relative;transition:width 0.3s ease,opacity 0.3s ease}
 .ref-panel.hidden{width:0;opacity:0;border:none;overflow:hidden}
 .ref-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(0,102,174,0.15);border-bottom:1px solid rgba(0,137,123,0.3)}
@@ -192,6 +194,39 @@ body{font-family:'DM Sans',-apple-system,sans-serif;background:#EDF1F5;color:var
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes repPop{0%{transform:translate(-50%,-50%) scale(1)}40%{transform:translate(-50%,-50%) scale(1.15)}100%{transform:translate(-50%,-50%) scale(1)}}
 
+/* ═══ CAMERA CALIBRATION ═══ */
+.calib-layout{display:flex;flex:1;min-height:0;height:100%}
+#calibVideo{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);position:relative;z-index:1}
+#calibCanvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5}
+.calib-silhouette{position:absolute;top:0;left:0;right:0;bottom:0;z-index:4;pointer-events:none;display:flex;align-items:center;justify-content:center}
+.calib-hud{position:absolute;top:0;left:0;right:0;z-index:10;padding:16px 20px;background:linear-gradient(to bottom,rgba(0,0,0,0.7),transparent);text-align:center}
+.calib-title{font-family:'DM Serif Display',serif;font-size:22px;color:white;margin-bottom:6px}
+.calib-prompt{font-size:14px;color:var(--hcl-teal-soft);font-weight:600;min-height:20px;transition:all 0.3s}
+.calib-prompt.warn{color:#EF6C00}
+.calib-prompt.bad{color:#EF4444}
+.calib-prompt.good{color:#2E7D32}
+.calib-distance{font-size:28px;font-family:'Space Mono',monospace;color:white;margin-top:4px;font-weight:700}
+.calib-bottom{position:absolute;bottom:16px;left:0;right:0;z-index:10;text-align:center}
+.calib-skip-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.8);font-size:13px;padding:8px 24px;border-radius:20px;cursor:pointer;font-family:'DM Sans',sans-serif;backdrop-filter:blur(8px)}
+.calib-panel{width:300px;background:#111;border-left:2px solid var(--hcl-teal);display:flex;flex-direction:column;overflow-y:auto}
+.calib-checks{padding:12px;display:flex;flex-direction:column;gap:8px}
+.calib-check{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.04);border-radius:10px;border:1.5px solid rgba(255,255,255,0.06);transition:border-color 0.4s,background 0.4s}
+.calib-check.pass{border-color:rgba(46,125,50,0.5);background:rgba(46,125,50,0.08)}
+.calib-check.fail{border-color:rgba(239,108,0,0.4);background:rgba(239,108,0,0.06)}
+.calib-check.error{border-color:rgba(198,40,40,0.4);background:rgba(198,40,40,0.06)}
+.chk-icon{font-size:22px;width:30px;text-align:center}
+.chk-text{flex:1}
+.chk-title{font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.8px;font-weight:600}
+.chk-val{font-size:12px;color:rgba(255,255,255,0.85);margin-top:2px}
+.calib-tips{padding:12px;border-top:1px solid rgba(255,255,255,0.08)}
+.calib-tip-title{font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px}
+.calib-tip{font-size:11.5px;color:rgba(255,255,255,0.6);line-height:1.7}
+.calib-camera-switch{padding:12px;border-top:1px solid rgba(255,255,255,0.08)}
+.camera-select{width:100%;padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:white;border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;margin-top:4px}
+.camera-select option{background:#222;color:white}
+.calib-go-btn{margin:12px;padding:14px;background:linear-gradient(135deg,var(--hcl-blue),var(--hcl-teal));color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity 0.3s}
+.calib-go-btn:disabled{opacity:0.35;cursor:not-allowed}
+
 /* ═══ POSTURE COACH ═══ */
 .posture-status{position:absolute;top:80px;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none}
 .posture-score-ring{width:100px;height:100px;border-radius:50%;background:rgba(0,0,0,0.6);backdrop-filter:blur(12px);border:3px solid var(--hcl-teal-soft);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:border-color 0.5s}
@@ -217,6 +252,40 @@ body{font-family:'DM Sans',-apple-system,sans-serif;background:#EDF1F5;color:var
 .posture-timer-val{font-size:32px;font-weight:700;font-family:'Space Mono',monospace;color:var(--hcl-teal-soft);margin-top:4px}
 .posture-history{padding:12px;border-top:1px solid rgba(255,255,255,0.08)}
 #postureChart{width:100%;height:80px;border-radius:8px;background:rgba(255,255,255,0.03)}
+.pm-grade{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:3px 8px;border-radius:8px;white-space:nowrap;text-align:center;min-width:60px}
+.pm-grade.excellent{background:rgba(46,125,50,0.2);color:#4CAF50}
+.pm-grade.good{background:rgba(0,137,123,0.2);color:#4DB6AC}
+.pm-grade.moderate{background:rgba(239,108,0,0.2);color:#EF6C00}
+.pm-grade.risk{background:rgba(198,40,40,0.2);color:#EF5350}
+.pm-overall{border-color:rgba(0,137,123,0.3)!important;background:rgba(0,137,123,0.06)!important}
+.posture-breakdown{padding:12px;border-top:1px solid rgba(255,255,255,0.08)}
+.pb-bar-container{margin-top:6px}
+.pb-bar{height:12px;border-radius:6px;background:rgba(255,255,255,0.08);overflow:hidden;display:flex;margin-bottom:4px}
+.pb-fill{height:100%;transition:width 0.5s ease}
+.pb-fill.pb-excellent{background:linear-gradient(90deg,#2E7D32,#43A047);border-radius:6px 0 0 6px}
+.pb-fill.pb-moderate{background:linear-gradient(90deg,#EF6C00,#FF9800)}
+.pb-fill.pb-risk{background:linear-gradient(90deg,#C62828,#EF5350);border-radius:0 6px 6px 0}
+.pb-labels{display:flex;justify-content:space-between;font-size:10px;font-weight:700;font-family:'Space Mono',monospace}
+.pb-lbl.excellent{color:#4CAF50}
+.pb-lbl.moderate{color:#FF9800}
+.pb-lbl.risk{color:#EF5350}
+.pb-legend{margin-top:6px;font-size:9px;color:rgba(255,255,255,0.4);display:flex;gap:8px;align-items:center}
+.pb-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:2px}
+.pb-dot.excellent{background:#43A047}
+.pb-dot.moderate{background:#FF9800}
+.pb-dot.risk{background:#EF5350}
+.posture-sessions{padding:12px;border-top:1px solid rgba(255,255,255,0.08)}
+.ps-list{display:flex;flex-direction:column;gap:5px;max-height:120px;overflow-y:auto}
+.ps-row{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(255,255,255,0.03);border-radius:6px;font-size:11px;color:rgba(255,255,255,0.7)}
+.ps-row .ps-date{color:rgba(255,255,255,0.4);font-size:10px}
+.ps-row .ps-score{font-weight:700;font-family:'Space Mono',monospace}
+.ps-row .ps-score.up{color:#4CAF50}
+.ps-row .ps-score.down{color:#EF5350}
+.ps-row .ps-score.same{color:#FF9800}
+.ps-comparison{margin-top:8px;padding:8px;border-radius:8px;font-size:11px;line-height:1.5;display:none}
+.ps-comparison.improved{background:rgba(46,125,50,0.1);color:#4CAF50;display:block;border:1px solid rgba(46,125,50,0.2)}
+.ps-comparison.declined{background:rgba(198,40,40,0.1);color:#EF5350;display:block;border:1px solid rgba(198,40,40,0.2)}
+.ps-comparison.same{background:rgba(239,108,0,0.1);color:#FF9800;display:block;border:1px solid rgba(239,108,0,0.2)}
 
 @media(max-width:560px){
   .doc,.select-doc,.summary-doc{border-radius:0;margin:0}
@@ -233,6 +302,7 @@ body{font-family:'DM Sans',-apple-system,sans-serif;background:#EDF1F5;color:var
   .summary-actions{padding:0 16px 20px}
   .ref-panel{display:none}
   .posture-panel{display:none}
+  .calib-panel{display:none}
 }
 </style>
 </head>
@@ -287,6 +357,49 @@ body{font-family:'DM Sans',-apple-system,sans-serif;background:#EDF1F5;color:var
   <div class="exercise-grid" id="exerciseGrid"></div>
   <div class="select-footer-bar">
     <button class="start-btn" id="startBtn" disabled onclick="beginWorkout()">Select exercises to begin</button>
+  </div>
+</div>
+</div>
+
+<!-- CAMERA CALIBRATION SCREEN -->
+<div id="calibScreen" class="screen">
+<div class="workout-container">
+  <div class="calib-layout">
+    <div class="camera-panel">
+      <video id="calibVideo" autoplay playsinline></video>
+      <canvas id="calibCanvas"></canvas>
+      <div class="calib-silhouette" id="calibSilhouette"></div>
+      <div class="calib-hud">
+        <div class="calib-title">📷 Camera Setup</div>
+        <div class="calib-prompt" id="calibPrompt">Initializing camera...</div>
+        <div class="calib-distance" id="calibDistance"></div>
+      </div>
+      <div class="calib-bottom">
+        <button class="calib-skip-btn" id="calibSkipBtn" onclick="skipCalibration()">Skip →</button>
+      </div>
+    </div>
+    <div class="calib-panel">
+      <div class="ref-header"><span class="ref-label">Setup Checklist</span></div>
+      <div class="calib-checks">
+        <div class="calib-check" id="chkCamera"><div class="chk-icon">⚪</div><div class="chk-text"><div class="chk-title">Camera Access</div><div class="chk-val" id="chkCameraVal">Waiting...</div></div></div>
+        <div class="calib-check" id="chkLight"><div class="chk-icon">⚪</div><div class="chk-text"><div class="chk-title">Lighting</div><div class="chk-val" id="chkLightVal">Checking...</div></div></div>
+        <div class="calib-check" id="chkBody"><div class="chk-icon">⚪</div><div class="chk-text"><div class="chk-title">Body in Frame</div><div class="chk-val" id="chkBodyVal">Checking...</div></div></div>
+        <div class="calib-check" id="chkDist"><div class="chk-icon">⚪</div><div class="chk-text"><div class="chk-title">Distance</div><div class="chk-val" id="chkDistVal">Checking...</div></div></div>
+        <div class="calib-check" id="chkStable"><div class="chk-icon">⚪</div><div class="chk-text"><div class="chk-title">Stable Pose</div><div class="chk-val" id="chkStableVal">Checking...</div></div></div>
+      </div>
+      <div class="calib-tips" id="calibTips">
+        <div class="calib-tip-title">Tips</div>
+        <div class="calib-tip">• Stand 1.5–2.5m from camera</div>
+        <div class="calib-tip">• Ensure good lighting on your face</div>
+        <div class="calib-tip">• Full body should be visible</div>
+        <div class="calib-tip">• Avoid backlight (window behind you)</div>
+      </div>
+      <div class="calib-camera-switch">
+        <div class="calib-tip-title">Camera</div>
+        <select id="cameraSelect" class="camera-select" onchange="switchCamera()"></select>
+      </div>
+      <button class="calib-go-btn" id="calibGoBtn" disabled onclick="calibrationComplete()">✓ All Checks Passed — Start</button>
+    </div>
   </div>
 </div>
 </div>
@@ -386,20 +499,34 @@ body{font-family:'DM Sans',-apple-system,sans-serif;background:#EDF1F5;color:var
         <span class="ref-label">Posture Analysis</span>
       </div>
       <div class="posture-metrics">
-        <div class="pm-item"><div class="pm-icon" id="pmHead">⚪</div><div class="pm-text"><div class="pm-title">Head / Neck</div><div class="pm-val" id="pmHeadVal">—</div></div></div>
-        <div class="pm-item"><div class="pm-icon" id="pmShoulders">⚪</div><div class="pm-text"><div class="pm-title">Shoulder Level</div><div class="pm-val" id="pmShouldersVal">—</div></div></div>
-        <div class="pm-item"><div class="pm-icon" id="pmSlouch">⚪</div><div class="pm-text"><div class="pm-title">Slouching</div><div class="pm-val" id="pmSlouchVal">—</div></div></div>
-        <div class="pm-item"><div class="pm-icon" id="pmSpine">⚪</div><div class="pm-text"><div class="pm-title">Spine Alignment</div><div class="pm-val" id="pmSpineVal">—</div></div></div>
-        <div class="pm-item"><div class="pm-icon" id="pmHip">⚪</div><div class="pm-text"><div class="pm-title">Hip Position</div><div class="pm-val" id="pmHipVal">—</div></div></div>
-        <div class="pm-item"><div class="pm-icon" id="pmOverall">⚪</div><div class="pm-text"><div class="pm-title">Overall</div><div class="pm-val" id="pmOverallVal">—</div></div></div>
+        <div class="pm-item"><div class="pm-icon" id="pmHead">⚪</div><div class="pm-text"><div class="pm-title">Head / Neck</div><div class="pm-val" id="pmHeadVal">—</div></div><div class="pm-grade" id="pmHeadGrade">—</div></div>
+        <div class="pm-item"><div class="pm-icon" id="pmShoulders">⚪</div><div class="pm-text"><div class="pm-title">Shoulder Level</div><div class="pm-val" id="pmShouldersVal">—</div></div><div class="pm-grade" id="pmShouldersGrade">—</div></div>
+        <div class="pm-item"><div class="pm-icon" id="pmSlouch">⚪</div><div class="pm-text"><div class="pm-title">Slouching</div><div class="pm-val" id="pmSlouchVal">—</div></div><div class="pm-grade" id="pmSlouchGrade">—</div></div>
+        <div class="pm-item"><div class="pm-icon" id="pmSpine">⚪</div><div class="pm-text"><div class="pm-title">Spine Alignment</div><div class="pm-val" id="pmSpineVal">—</div></div><div class="pm-grade" id="pmSpineGrade">—</div></div>
+        <div class="pm-item"><div class="pm-icon" id="pmHip">⚪</div><div class="pm-text"><div class="pm-title">Hip Position</div><div class="pm-val" id="pmHipVal">—</div></div><div class="pm-grade" id="pmHipGrade">—</div></div>
+        <div class="pm-item"><div class="pm-icon" id="pmScreen">⚪</div><div class="pm-text"><div class="pm-title">Screen Distance</div><div class="pm-val" id="pmScreenVal">—</div></div><div class="pm-grade" id="pmScreenGrade">—</div></div>
+        <div class="pm-item pm-overall"><div class="pm-icon" id="pmOverall">⚪</div><div class="pm-text"><div class="pm-title">Overall</div><div class="pm-val" id="pmOverallVal">—</div></div><div class="pm-grade" id="pmOverallGrade">—</div></div>
+      </div>
+      <div class="posture-breakdown" id="postureBreakdown">
+        <div class="pm-title">Scoring Breakdown</div>
+        <div class="pb-bar-container">
+          <div class="pb-bar"><div class="pb-fill pb-excellent" id="pbExcellent" style="width:0%"></div></div>
+          <div class="pb-labels"><span class="pb-lbl excellent" id="pbExcellentLbl">0%</span><span class="pb-lbl moderate" id="pbModerateLbl">0%</span><span class="pb-lbl risk" id="pbRiskLbl">0%</span></div>
+          <div class="pb-legend"><span class="pb-dot excellent"></span>Excellent <span class="pb-dot moderate"></span>Moderate <span class="pb-dot risk"></span>Risk</div>
+        </div>
       </div>
       <div class="posture-timer">
         <div class="pm-title">Session Time</div>
         <div class="posture-timer-val" id="postureTimer">00:00</div>
       </div>
       <div class="posture-history" id="postureHistory">
-        <div class="pm-title" style="margin-bottom:6px">Score History</div>
+        <div class="pm-title" style="margin-bottom:6px">Live Score</div>
         <canvas id="postureChart" width="240" height="80"></canvas>
+      </div>
+      <div class="posture-sessions" id="postureSessions">
+        <div class="pm-title" style="margin-bottom:6px">Past Sessions</div>
+        <div class="ps-list" id="psSessionList">No history yet</div>
+        <div class="ps-comparison" id="psComparison"></div>
       </div>
     </div>
   </div>
@@ -446,6 +573,480 @@ body{font-family:'DM Sans',-apple-system,sans-serif;background:#EDF1F5;color:var
 // Phase Detection · Adaptive Thresholds · Fatigue Tracking
 // Confidence-Weighted · Trajectory Smoothness · Safety Alerts
 // ============================================================
+
+// ============================================================
+// CAMERA CALIBRATION ENGINE
+// Full-body detection, distance estimation, lighting check,
+// camera switching, guided prompts
+// ============================================================
+
+let calibState = {
+  active: false,
+  pose: null,
+  stream: null,
+  rafId: null,
+  mode: 'exercise', // 'exercise' or 'posture'
+  onComplete: null,
+  frameCount: 0,
+  stableFrames: 0,
+  // Check results
+  checks: {
+    camera: { status: 'waiting', msg: 'Waiting...' },
+    light: { status: 'waiting', msg: 'Checking...' },
+    body: { status: 'waiting', msg: 'Checking...' },
+    dist: { status: 'waiting', msg: 'Checking...' },
+    stable: { status: 'waiting', msg: 'Checking...' },
+  },
+  // Rolling data
+  brightHistory: [],
+  bodySpanHistory: [],
+  visibleJointsHistory: [],
+  availableCameras: [],
+  currentCameraId: null,
+};
+
+// Required landmarks for full-body detection
+const BODY_LANDMARKS = {
+  exercise: {
+    required: [0,11,12,23,24,25,26], // nose, shoulders, hips, knees
+    preferred: [0,7,8,11,12,13,14,15,16,23,24,25,26,27,28], // full set
+    minRequired: 5,
+    idealSpan: [0.5, 0.85], // body should fill 50-85% of frame height
+    idealDist: [1.5, 2.5], // meters
+  },
+  posture: {
+    required: [0,11,12], // nose, shoulders minimum
+    preferred: [0,7,8,11,12,23,24],
+    minRequired: 3,
+    idealSpan: [0.3, 0.7],
+    idealDist: [0.5, 1.5],
+  },
+};
+
+async function startCalibration(mode, onComplete) {
+  calibState.active = true;
+  calibState.mode = mode;
+  calibState.onComplete = onComplete;
+  calibState.frameCount = 0;
+  calibState.stableFrames = 0;
+  calibState.brightHistory = [];
+  calibState.bodySpanHistory = [];
+  calibState.visibleJointsHistory = [];
+  Object.keys(calibState.checks).forEach(k => {
+    calibState.checks[k] = { status: 'waiting', msg: 'Checking...' };
+  });
+  updateCalibUI();
+
+  showScreen('calibScreen');
+  const video = document.getElementById('calibVideo');
+  const canvas = document.getElementById('calibCanvas');
+
+  // Enumerate cameras
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    calibState.availableCameras = devices.filter(d => d.kind === 'videoinput');
+    populateCameraSelect();
+  } catch(e) {}
+
+  // Start camera
+  // Step 1: Get camera
+  try {
+    const constraints = {
+      video: {
+        facingMode: 'user',
+        width: { ideal: 1280 }, height: { ideal: 720 },
+        ...(calibState.currentCameraId ? { deviceId: { exact: calibState.currentCameraId } } : {}),
+      }
+    };
+    calibState.stream = await navigator.mediaDevices.getUserMedia(constraints);
+    video.srcObject = calibState.stream;
+    await video.play();
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    setCalibCheck('camera', 'pass', '✓ Camera active');
+    setCalibPrompt('Stand in frame. Loading pose model...', '');
+  } catch (err) {
+    setCalibCheck('camera', 'error', '✗ Camera denied: ' + err.message);
+    setCalibPrompt('Camera access denied. Please allow permissions and refresh.', 'bad');
+    return;
+  }
+
+  // Step 2: Initialize pose model
+  setCalibPrompt('Loading pose model (first time may take 10-15s)...', 'warn');
+  setCalibCheck('stable', 'waiting', 'Loading AI model...');
+
+  calibState.pose = new Pose({
+    locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${f}`
+  });
+  calibState.pose.setOptions({
+    modelComplexity: 1,
+    smoothLandmarks: true,
+    enableSegmentation: false,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.4
+  });
+  calibState.pose.onResults(onCalibResults);
+
+  // Step 3: Start calibration loop
+  // Model actually downloads on first send() — may take 5-15s
+  let modelLoaded = false;
+  let sendAttempts = 0;
+  const origOnResults = onCalibResults;
+  calibState.pose.onResults((results) => {
+    if (!modelLoaded) {
+      modelLoaded = true;
+      setCalibPrompt('Stand in frame. I\'ll check your setup...', '');
+      setCalibCheck('stable', 'waiting', 'Checking...');
+    }
+    origOnResults(results);
+  });
+
+  async function calibLoop() {
+    if (!calibState.active) return;
+    if (video.readyState >= 2) {
+      if (!modelLoaded) {
+        sendAttempts++;
+        if (sendAttempts % 30 === 0) {
+          const secs = Math.round(sendAttempts / 30);
+          setCalibPrompt(`Loading pose model... (${secs}s) — first load downloads ~5MB`, 'warn');
+        }
+      }
+      checkLighting(video, canvas);
+      try { await calibState.pose.send({ image: video }); } catch(e) {
+        // Model still loading or frame error — silently retry
+      }
+    }
+    calibState.rafId = requestAnimationFrame(calibLoop);
+  }
+  calibState.rafId = requestAnimationFrame(calibLoop);
+}
+
+function stopCalibration() {
+  calibState.active = false;
+  if (calibState.rafId) cancelAnimationFrame(calibState.rafId);
+  const v = document.getElementById('calibVideo');
+  if (v && v.srcObject) { v.srcObject.getTracks().forEach(t => t.stop()); v.srcObject = null; }
+}
+
+function skipCalibration() {
+  stopCalibration();
+  if (calibState.onComplete) calibState.onComplete();
+}
+
+function calibrationComplete() {
+  stopCalibration();
+  if (calibState.onComplete) calibState.onComplete();
+}
+
+function populateCameraSelect() {
+  const sel = document.getElementById('cameraSelect');
+  if (!sel) return;
+  sel.innerHTML = '';
+  calibState.availableCameras.forEach((cam, i) => {
+    const opt = document.createElement('option');
+    opt.value = cam.deviceId;
+    opt.textContent = cam.label || `Camera ${i + 1}`;
+    if (cam.deviceId === calibState.currentCameraId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+async function switchCamera() {
+  const sel = document.getElementById('cameraSelect');
+  if (!sel) return;
+  calibState.currentCameraId = sel.value;
+
+  // Restart with new camera
+  const v = document.getElementById('calibVideo');
+  if (v && v.srcObject) { v.srcObject.getTracks().forEach(t => t.stop()); }
+
+  try {
+    calibState.stream = await navigator.mediaDevices.getUserMedia({
+      video: { deviceId: { exact: calibState.currentCameraId }, width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    v.srcObject = calibState.stream;
+    await v.play();
+    setCalibCheck('camera', 'pass', '✓ Camera switched');
+    setCalibPrompt('Camera switched. Stand in frame...', '');
+    // Reset other checks
+    calibState.stableFrames = 0;
+    calibState.bodySpanHistory = [];
+    setCalibCheck('body', 'waiting', 'Checking...');
+    setCalibCheck('dist', 'waiting', 'Checking...');
+    setCalibCheck('stable', 'waiting', 'Checking...');
+  } catch(e) {
+    setCalibCheck('camera', 'error', '✗ Could not switch: ' + e.message);
+  }
+}
+
+// ── LIGHTING CHECK ──
+function checkLighting(video, canvas) {
+  const ctx = canvas.getContext('2d');
+  // Sample center region of frame
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const cx = canvas.width / 2, cy = canvas.height / 2;
+  const size = 100;
+  const imgData = ctx.getImageData(cx - size/2, cy - size/2, size, size);
+  const data = imgData.data;
+
+  let totalBrightness = 0;
+  let overexposed = 0;
+  let underexposed = 0;
+  const pixelCount = data.length / 4;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const brightness = (data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114);
+    totalBrightness += brightness;
+    if (brightness > 240) overexposed++;
+    if (brightness < 30) underexposed++;
+  }
+
+  const avgBrightness = totalBrightness / pixelCount;
+  calibState.brightHistory.push(avgBrightness);
+  if (calibState.brightHistory.length > 15) calibState.brightHistory.shift();
+
+  const avgRecent = calibState.brightHistory.reduce((s,v) => s+v, 0) / calibState.brightHistory.length;
+  const overPct = overexposed / pixelCount;
+  const underPct = underexposed / pixelCount;
+
+  if (avgRecent < 40) {
+    setCalibCheck('light', 'error', `✗ Too dark (${Math.round(avgRecent)}). Turn on lights or move to brighter area.`);
+    setCalibPrompt('⚡ Too dark — turn on more lights', 'bad');
+  } else if (avgRecent < 70) {
+    setCalibCheck('light', 'fail', `⚠ Low light (${Math.round(avgRecent)}). Tracking may be less accurate.`);
+  } else if (overPct > 0.4) {
+    setCalibCheck('light', 'fail', `⚠ Backlit — ${Math.round(overPct*100)}% overexposed. Avoid windows behind you.`);
+    setCalibPrompt('💡 Strong backlight — move away from window', 'warn');
+  } else {
+    setCalibCheck('light', 'pass', `✓ Good lighting (${Math.round(avgRecent)})`);
+  }
+
+  // Clear canvas after sampling
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+// ── POSE RESULTS FOR CALIBRATION ──
+function onCalibResults(results) {
+  if (!calibState.active) return;
+  const canvas = document.getElementById('calibCanvas');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  calibState.frameCount++;
+  const config = BODY_LANDMARKS[calibState.mode];
+
+  if (!results.poseLandmarks) {
+    setCalibCheck('body', 'fail', '⚠ No body detected. Step into frame.');
+    setCalibPrompt('👤 Step into the camera frame', 'warn');
+    drawCalibSilhouette(ctx, w, h, 'none');
+    calibState.stableFrames = 0;
+    return;
+  }
+
+  const lm = results.poseLandmarks;
+
+  // Draw current skeleton on calibration canvas
+  drawCalibSkeleton(ctx, lm, w, h);
+
+  // ── BODY IN FRAME CHECK ──
+  let visibleRequired = 0;
+  let visiblePreferred = 0;
+  let missingNames = [];
+  const jointNames = {0:'Nose',7:'L Ear',8:'R Ear',11:'L Shoulder',12:'R Shoulder',13:'L Elbow',14:'R Elbow',15:'L Wrist',16:'R Wrist',23:'L Hip',24:'R Hip',25:'L Knee',26:'R Knee',27:'L Ankle',28:'R Ankle'};
+
+  config.required.forEach(i => {
+    if (lm[i] && lm[i].visibility > 0.4) visibleRequired++;
+    else missingNames.push(jointNames[i] || `#${i}`);
+  });
+  config.preferred.forEach(i => {
+    if (lm[i] && lm[i].visibility > 0.35) visiblePreferred++;
+  });
+  calibState.visibleJointsHistory.push(visibleRequired);
+  if (calibState.visibleJointsHistory.length > 10) calibState.visibleJointsHistory.shift();
+
+  const avgVisible = calibState.visibleJointsHistory.reduce((s,v)=>s+v,0) / calibState.visibleJointsHistory.length;
+
+  if (avgVisible >= config.required.length) {
+    setCalibCheck('body', 'pass', `✓ Full body detected (${visiblePreferred}/${config.preferred.length} joints)`);
+  } else if (avgVisible >= config.minRequired) {
+    setCalibCheck('body', 'fail', `⚠ Partial: missing ${missingNames.join(', ')}. Step back.`);
+    setCalibPrompt(`👣 Step back — I can't see: ${missingNames.slice(0,3).join(', ')}`, 'warn');
+  } else {
+    setCalibCheck('body', 'error', `✗ Only ${Math.round(avgVisible)}/${config.required.length} joints visible. Step into frame.`);
+    setCalibPrompt('👤 Move into frame — I need to see your full body', 'bad');
+  }
+
+  // ── DISTANCE ESTIMATION ──
+  // Use vertical span of visible landmarks as proportion of frame height
+  let minY = 1, maxY = 0;
+  config.preferred.forEach(i => {
+    if (lm[i] && lm[i].visibility > 0.35) {
+      minY = Math.min(minY, lm[i].y);
+      maxY = Math.max(maxY, lm[i].y);
+    }
+  });
+  const bodySpan = maxY - minY;
+  calibState.bodySpanHistory.push(bodySpan);
+  if (calibState.bodySpanHistory.length > 10) calibState.bodySpanHistory.shift();
+
+  const avgSpan = calibState.bodySpanHistory.reduce((s,v)=>s+v,0) / calibState.bodySpanHistory.length;
+
+  // Estimate distance (rough): average person is ~170cm, camera FOV ~60°
+  // At 2m, body spans about 60% of frame. At 1m, ~100%. At 3m, ~40%.
+  const estDistM = avgSpan > 0.01 ? (1.0 / avgSpan) * 0.65 : 0;
+  const distEl = document.getElementById('calibDistance');
+  if (distEl) distEl.textContent = estDistM > 0 ? `~${estDistM.toFixed(1)}m` : '';
+
+  const [idealMin, idealMax] = config.idealSpan;
+  if (avgSpan < idealMin * 0.7) {
+    setCalibCheck('dist', 'error', `✗ Too far (~${estDistM.toFixed(1)}m). Step closer.`);
+    setCalibPrompt(`👣 Step closer — you're too far (~${estDistM.toFixed(1)}m)`, 'bad');
+    drawCalibSilhouette(ctx, w, h, 'far');
+  } else if (avgSpan < idealMin) {
+    setCalibCheck('dist', 'fail', `⚠ A bit far (~${estDistM.toFixed(1)}m). Step forward ~0.5m.`);
+    setCalibPrompt(`👣 Step forward about half a meter`, 'warn');
+    drawCalibSilhouette(ctx, w, h, 'far');
+  } else if (avgSpan > idealMax * 1.2) {
+    setCalibCheck('dist', 'error', `✗ Too close (~${estDistM.toFixed(1)}m). Step back.`);
+    setCalibPrompt(`👣 Step back — you're too close (~${estDistM.toFixed(1)}m)`, 'bad');
+    drawCalibSilhouette(ctx, w, h, 'close');
+  } else if (avgSpan > idealMax) {
+    setCalibCheck('dist', 'fail', `⚠ Slightly close (~${estDistM.toFixed(1)}m). Step back ~0.5m.`);
+    drawCalibSilhouette(ctx, w, h, 'close');
+  } else {
+    setCalibCheck('dist', 'pass', `✓ Good distance (~${estDistM.toFixed(1)}m)`);
+    drawCalibSilhouette(ctx, w, h, 'ok');
+  }
+
+  // ── STABILITY CHECK ──
+  const bodyOk = avgVisible >= config.required.length;
+  const distOk = avgSpan >= idealMin && avgSpan <= idealMax;
+  const lightOk = calibState.checks.light.status === 'pass';
+
+  if (bodyOk && distOk) {
+    calibState.stableFrames++;
+  } else {
+    calibState.stableFrames = Math.max(0, calibState.stableFrames - 2);
+  }
+
+  const stablePct = Math.min(100, Math.round((calibState.stableFrames / 20) * 100));
+  if (calibState.stableFrames >= 20) {
+    setCalibCheck('stable', 'pass', `✓ Stable pose (${stablePct}%)`);
+  } else if (calibState.stableFrames > 5) {
+    setCalibCheck('stable', 'fail', `⚠ Hold still... (${stablePct}%)`);
+  } else {
+    setCalibCheck('stable', 'waiting', `Waiting for stable pose (${stablePct}%)`);
+  }
+
+  // ── ALL CHECKS PASSED? ──
+  const allPass = Object.values(calibState.checks).every(c => c.status === 'pass');
+  const goBtn = document.getElementById('calibGoBtn');
+  if (goBtn) {
+    goBtn.disabled = !allPass;
+    goBtn.textContent = allPass ? '✓ All Checks Passed — Start' : 'Waiting for all checks...';
+  }
+  if (allPass) {
+    setCalibPrompt('✅ All checks passed! Press Start or wait 3s...', 'good');
+    // Auto-start after 3s if all pass
+    if (calibState.stableFrames === 22) {
+      setTimeout(() => { if (calibState.active && allPass) calibrationComplete(); }, 3000);
+    }
+  }
+}
+
+function drawCalibSkeleton(ctx, lm, w, h) {
+  const conns = [[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24],[23,25],[25,27],[24,26],[26,28],[0,11],[0,12]];
+  conns.forEach(([a,b]) => {
+    const la = lm[a], lb = lm[b];
+    if (la.visibility < 0.3 || lb.visibility < 0.3) return;
+    ctx.beginPath();
+    ctx.moveTo((1-la.x)*w, la.y*h);
+    ctx.lineTo((1-lb.x)*w, lb.y*h);
+    ctx.strokeStyle = 'rgba(77,182,172,0.8)';
+    ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.stroke();
+  });
+  [0,11,12,23,24,25,26,27,28].forEach(i => {
+    if (lm[i].visibility < 0.3) return;
+    ctx.beginPath();
+    ctx.arc((1-lm[i].x)*w, lm[i].y*h, 6, 0, Math.PI*2);
+    ctx.fillStyle = lm[i].visibility > 0.5 ? '#4DB6AC' : '#EF6C00';
+    ctx.fill();
+  });
+}
+
+function drawCalibSilhouette(ctx, w, h, status) {
+  // Draw body outline guide showing ideal position
+  const cx = w / 2, margin = 40;
+
+  if (status === 'none') {
+    // Ghost body outline
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 8]);
+    // Head
+    ctx.beginPath(); ctx.arc(cx, h*0.15, 25, 0, Math.PI*2); ctx.stroke();
+    // Torso
+    ctx.beginPath(); ctx.moveTo(cx-50, h*0.22); ctx.lineTo(cx+50, h*0.22);
+    ctx.lineTo(cx+40, h*0.55); ctx.lineTo(cx-40, h*0.55); ctx.closePath(); ctx.stroke();
+    // Legs
+    ctx.beginPath(); ctx.moveTo(cx-30, h*0.55); ctx.lineTo(cx-35, h*0.85); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+30, h*0.55); ctx.lineTo(cx+35, h*0.85); ctx.stroke();
+    ctx.setLineDash([]);
+    // Text
+    ctx.font = 'bold 16px DM Sans';
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.textAlign = 'center';
+    ctx.fillText('Stand here', cx, h*0.5);
+  } else if (status === 'far') {
+    // Arrows pointing inward
+    ctx.fillStyle = 'rgba(239,108,0,0.4)';
+    ctx.font = 'bold 40px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('↑', cx, h*0.92);
+    ctx.font = 'bold 14px DM Sans';
+    ctx.fillText('Step closer', cx, h*0.97);
+  } else if (status === 'close') {
+    ctx.fillStyle = 'rgba(239,108,0,0.4)';
+    ctx.font = 'bold 40px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('↓', cx, h*0.15);
+    ctx.font = 'bold 14px DM Sans';
+    ctx.fillText('Step back', cx, h*0.20);
+  } else if (status === 'ok') {
+    // Green border
+    ctx.strokeStyle = 'rgba(46,125,50,0.3)';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(margin, margin, w - margin*2, h - margin*2);
+  }
+}
+
+function setCalibCheck(key, status, msg) {
+  calibState.checks[key] = { status, msg };
+  const el = document.getElementById('chk' + key.charAt(0).toUpperCase() + key.slice(1));
+  const valEl = document.getElementById('chk' + key.charAt(0).toUpperCase() + key.slice(1) + 'Val');
+  const iconEl = el?.querySelector('.chk-icon');
+  if (el) {
+    el.className = 'calib-check ' + (status === 'pass' ? 'pass' : status === 'fail' ? 'fail' : status === 'error' ? 'error' : '');
+  }
+  if (iconEl) iconEl.textContent = status === 'pass' ? '🟢' : status === 'fail' ? '🟡' : status === 'error' ? '🔴' : '⚪';
+  if (valEl) valEl.textContent = msg;
+}
+
+function setCalibPrompt(text, level) {
+  const el = document.getElementById('calibPrompt');
+  if (el) {
+    el.textContent = text;
+    el.className = 'calib-prompt ' + (level || '');
+  }
+}
+
+function updateCalibUI() {
+  Object.keys(calibState.checks).forEach(k => {
+    const c = calibState.checks[k];
+    setCalibCheck(k, c.status, c.msg);
+  });
+}
 
 // ===== ONE-EURO FILTER (replaces basic EMA) =====
 // Provides optimal jitter/latency tradeoff - used by research-grade
@@ -814,15 +1415,25 @@ async function beginWorkout() {
   state.currentExIdx = 0;
   state.exerciseResults = [];
   state.sessionStart = Date.now();
+
+  // Run calibration first, then start workout
+  startCalibration('exercise', () => launchWorkoutAfterCalib());
+}
+
+async function launchWorkoutAfterCalib() {
   showScreen('workoutScreen');
 
   const video = document.getElementById('videoFeed');
   const canvas = document.getElementById('overlayCanvas');
 
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }
-    });
+    const constraints = {
+      video: {
+        width: { ideal: 1280 }, height: { ideal: 720 },
+        ...(calibState.currentCameraId ? { deviceId: { exact: calibState.currentCameraId } } : { facingMode: 'user' }),
+      }
+    };
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
     video.srcObject = stream;
     await video.play();
     canvas.width = video.videoWidth || 640;
@@ -832,7 +1443,7 @@ async function beginWorkout() {
       locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${f}`
     });
     pose.setOptions({
-      modelComplexity: 2, // Maximum accuracy
+      modelComplexity: 2,
       smoothLandmarks: true,
       enableSegmentation: false,
       minDetectionConfidence: 0.65,
@@ -1865,6 +2476,8 @@ let postureState = {
   slouchScore: 100,
   spineScore: 100,
   hipScore: 100,
+  screenScore: 100,
+  estScreenDist: 0,
   overallScore: 100,
   // Issue tracking
   currentIssues: [],
@@ -1882,7 +2495,7 @@ function getPostureFilter(key) {
 function calcPostureAngle(lm, a, b, c) {
   const la = lm[a], lb = lm[b], lc = lm[c];
   if (!la || !lb || !lc) return null;
-  if (la.visibility < 0.4 || lb.visibility < 0.4 || lc.visibility < 0.4) return null;
+  if (la.visibility < 0.15 || lb.visibility < 0.15 || lc.visibility < 0.15) return null;
   const r = Math.atan2(lc.y - lb.y, lc.x - lb.x) - Math.atan2(la.y - lb.y, la.x - lb.x);
   let angle = Math.abs(r * 180 / Math.PI);
   if (angle > 180) angle = 360 - angle;
@@ -1890,6 +2503,11 @@ function calcPostureAngle(lm, a, b, c) {
 }
 
 async function startPostureCoach() {
+  // Run calibration first (posture mode — less strict body requirements)
+  startCalibration('posture', () => launchPostureAfterCalib());
+}
+
+async function launchPostureAfterCalib() {
   showScreen('postureScreen');
   postureState.active = true;
   postureState.startTime = Date.now();
@@ -1900,14 +2518,23 @@ async function startPostureCoach() {
   postureState.issueCounters = {};
   postureState.lastFeedbackTime = 0;
   postureState.lastSpokenTime = 0;
+  postureState.screenScore = 100;
+  postureState.estScreenDist = 0;
+
+  // Load past session history
+  loadPostureHistory();
 
   const video = document.getElementById('postureVideo');
   const canvas = document.getElementById('postureCanvas');
 
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }
-    });
+    const constraints = {
+      video: {
+        width: { ideal: 1280 }, height: { ideal: 720 },
+        ...(calibState.currentCameraId ? { deviceId: { exact: calibState.currentCameraId } } : { facingMode: 'user' }),
+      }
+    };
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
     video.srcObject = stream;
     await video.play();
     canvas.width = video.videoWidth || 640;
@@ -1925,7 +2552,6 @@ async function startPostureCoach() {
     });
     postureState.pose.onResults(onPostureResults);
 
-    // Use rAF loop instead of Camera utility (avoids stream conflict)
     async function postureLoop() {
       if (!postureState.active) return;
       if (video.readyState >= 2) {
@@ -1935,11 +2561,10 @@ async function startPostureCoach() {
     }
     postureState.rafId = requestAnimationFrame(postureLoop);
 
-    // Timer
     postureState.timerInterval = setInterval(updatePostureTimer, 1000);
 
-    setPostureCoach('Stand or sit naturally in frame. I\'ll analyze your posture in a moment...');
-    speak('Stand or sit naturally. I\'ll begin posture analysis shortly.');
+    setPostureCoach('Analyzing your posture...');
+    speak('Posture analysis starting.');
   } catch (err) {
     console.error('Posture camera error:', err);
     setPostureCoach('Error loading pose model. Check your internet connection and refresh.');
@@ -1947,6 +2572,7 @@ async function startPostureCoach() {
 }
 
 function stopPostureCoach() {
+  savePostureSession();
   postureState.active = false;
   if (postureState.rafId) cancelAnimationFrame(postureState.rafId);
   const v = document.getElementById('postureVideo');
@@ -1985,271 +2611,470 @@ function onPostureResults(results) {
   analyzePosture(lm);
 }
 
+
 function drawPostureSkeleton(ctx, lm, w, h) {
   const connections = [
-    [0,11],[0,12], // nose to shoulders (approx head-spine line)
-    [11,13],[13,15],[12,14],[14,16],
-    [11,12],[11,23],[12,24],[23,24],
-    [23,25],[25,27],[24,26],[26,28],
+    [7,11],[8,12],   // ears to shoulders
+    [0,7],[0,8],     // nose to ears
+    [11,13],[13,15],[12,14],[14,16], // arms
+    [11,12],         // shoulder bar
+    [11,23],[12,24],[23,24], // torso
+    [23,25],[25,27],[24,26],[26,28], // legs
   ];
+
+  const headOk = postureState.headScore >= 65;
+  const shOk = postureState.shoulderScore >= 65;
+  const spineOk = postureState.spineScore >= 65;
+  const slouchOk = postureState.slouchScore >= 65;
+  const overall = postureState.overallScore;
 
   connections.forEach(([a, b]) => {
     const la = lm[a], lb = lm[b];
-    if (la.visibility < 0.35 || lb.visibility < 0.35) return;
+    if (la.visibility < 0.25 || lb.visibility < 0.25) return;
     const ax = (1 - la.x) * w, ay = la.y * h;
     const bx = (1 - lb.x) * w, by = lb.y * h;
+
+    let color = 'rgba(77,182,172,0.5)';
+    let lw = 2;
+
+    // Neck lines (ear→shoulder)
+    if (([7,8].includes(a) && [11,12].includes(b)) || ([11,12].includes(a) && [7,8].includes(b))) {
+      color = slouchOk ? 'rgba(46,125,50,0.85)' : 'rgba(239,68,68,0.85)'; lw = 4;
+    }
+    // Nose to ears
+    else if ([0].includes(a) && [7,8].includes(b)) {
+      color = headOk ? 'rgba(46,125,50,0.7)' : 'rgba(239,108,0,0.7)'; lw = 3;
+    }
+    // Shoulder bar
+    else if ((a===11 && b===12) || (a===12 && b===11)) {
+      color = shOk ? 'rgba(46,125,50,0.9)' : 'rgba(239,108,0,0.9)'; lw = 5;
+    }
+    // Spine/torso
+    else if (([11,12].includes(a) && [23,24].includes(b)) || ([23,24].includes(a) && [11,12].includes(b))) {
+      color = spineOk ? 'rgba(46,125,50,0.8)' : 'rgba(239,68,68,0.8)'; lw = 4;
+    }
+
     ctx.beginPath();
-    ctx.moveTo(ax, ay);
-    ctx.lineTo(bx, by);
-    ctx.strokeStyle = 'rgba(77,182,172,0.7)';
-    ctx.lineWidth = 3;
-    ctx.lineCap = 'round';
+    ctx.moveTo(ax, ay); ctx.lineTo(bx, by);
+    ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.lineCap = 'round';
     ctx.stroke();
   });
 
-  // Key posture landmarks: ears, shoulders, hips
-  [0, 7, 8, 11, 12, 23, 24, 25, 26, 27, 28].forEach(i => {
+  // Draw joints
+  const keyJoints = [0, 7, 8, 11, 12, 23, 24];
+  [0, 7, 8, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28].forEach(i => {
     const l = lm[i];
-    if (l.visibility < 0.35) return;
+    if (l.visibility < 0.25) return;
     const x = (1 - l.x) * w, y = l.y * h;
-    const isKey = [0, 11, 12, 23, 24].includes(i);
+    const isKey = keyJoints.includes(i);
+    let dc = '#4DB6AC';
+    if (i === 0) dc = headOk ? '#2E7D32' : '#EF4444';
+    else if ([7,8].includes(i)) dc = slouchOk ? '#2E7D32' : '#EF6C00';
+    else if ([11,12].includes(i)) dc = shOk ? '#2E7D32' : '#EF6C00';
+    else if ([23,24].includes(i)) dc = spineOk ? '#2E7D32' : '#EF4444';
+
     ctx.beginPath();
-    ctx.arc(x, y, isKey ? 7 : 4, 0, Math.PI * 2);
-    ctx.fillStyle = isKey ? '#4DB6AC' : 'rgba(255,255,255,0.5)';
-    ctx.fill();
+    ctx.arc(x, y, isKey ? 8 : 4, 0, Math.PI * 2);
+    ctx.fillStyle = dc; ctx.fill();
+    if (isKey) {
+      ctx.beginPath(); ctx.arc(x, y, 14, 0, Math.PI * 2);
+      ctx.strokeStyle = dc + '44'; ctx.lineWidth = 2; ctx.stroke();
+    }
   });
 
-  // Draw vertical alignment guide line (ear → shoulder → hip)
-  const earL = lm[7], earR = lm[8], shL = lm[11], shR = lm[12], hipL = lm[23], hipR = lm[24];
-  if (shL.visibility > 0.4 && hipL.visibility > 0.4) {
-    const earY = (earL.visibility > 0.4 && earR.visibility > 0.4) ? ((earL.y + earR.y) / 2) * h : null;
-    const shY = ((shL.y + shR.y) / 2) * h;
-    const shX = (1 - (shL.x + shR.x) / 2) * w;
-    const hipY = ((hipL.y + hipR.y) / 2) * h;
+  // ══════ VISUAL GUIDELINES ══════
+  const nose = lm[0], shL = lm[11], shR = lm[12], earL = lm[7], earR = lm[8];
+  if (nose.visibility < 0.35 || shL.visibility < 0.35 || shR.visibility < 0.35) return;
 
-    // Ideal vertical line from shoulder
+  const noseX = (1 - nose.x) * w, noseY = nose.y * h;
+  const shLX = (1 - shL.x) * w, shLY = shL.y * h;
+  const shRX = (1 - shR.x) * w, shRY = shR.y * h;
+  const shCX = (shLX + shRX) / 2, shCY = (shLY + shRY) / 2;
+
+  // 1. VERTICAL PLUMB LINE
+  const plumbColor = overall >= 70 ? 'rgba(46,125,50,0.7)' : overall >= 50 ? 'rgba(239,108,0,0.7)' : 'rgba(239,68,68,0.7)';
+  ctx.beginPath();
+  ctx.setLineDash([10, 6]);
+  ctx.moveTo(shCX, Math.min(noseY - 60, 20));
+  ctx.lineTo(shCX, Math.min(h - 20, shCY + 250));
+  ctx.strokeStyle = plumbColor; ctx.lineWidth = 3; ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 2. NOSE LATERAL DEVIATION (head tilt)
+  const noseDev = Math.abs(noseX - shCX);
+  if (noseDev > 12) {
     ctx.beginPath();
-    ctx.setLineDash([6, 6]);
-    ctx.moveTo(shX, earY || shY - 60);
-    ctx.lineTo(shX, hipY + 20);
-    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    ctx.setLineDash([]);
+    ctx.moveTo(shCX, noseY); ctx.lineTo(noseX, noseY);
+    ctx.strokeStyle = noseDev > 30 ? 'rgba(239,68,68,0.9)' : 'rgba(239,108,0,0.8)';
+    ctx.lineWidth = 3; ctx.setLineDash([5, 3]); ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  // 3. SHOULDER LEVEL LINE
+  ctx.beginPath();
+  ctx.moveTo(shLX - 40, shLY); ctx.lineTo(shRX + 40, shRY);
+  ctx.strokeStyle = shOk ? 'rgba(46,125,50,0.8)' : 'rgba(239,108,0,0.9)';
+  ctx.lineWidth = shOk ? 3 : 4;
+  ctx.setLineDash(shOk ? [] : [8, 4]); ctx.stroke(); ctx.setLineDash([]);
+
+  if (!shOk) {
+    const avgY = (shLY + shRY) / 2;
+    ctx.beginPath();
+    ctx.moveTo(shLX - 40, avgY); ctx.lineTo(shRX + 40, avgY);
+    ctx.strokeStyle = 'rgba(46,125,50,0.4)'; ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]); ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  // 4. NECK/HEAD ANGLE LINE
+  const neckPixelGap = shCY - noseY;
+  const neckColor = neckPixelGap > 50 ? 'rgba(46,125,50,0.6)' : neckPixelGap > 20 ? 'rgba(239,108,0,0.7)' : 'rgba(239,68,68,0.8)';
+  ctx.beginPath();
+  ctx.moveTo(noseX, noseY); ctx.lineTo(shCX, shCY);
+  ctx.strokeStyle = neckColor; ctx.lineWidth = 3; ctx.stroke();
+
+  // 5. STATUS LABELS (with background for visibility)
+  ctx.font = 'bold 14px DM Sans, sans-serif';
+  ctx.textAlign = 'center';
+
+  // Head label with background
+  const headText = headOk ? '✓ Head OK' : '⚠ Head/Neck';
+  const headMetric = ctx.measureText(headText);
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillRect(noseX - headMetric.width/2 - 6, noseY - 40, headMetric.width + 12, 22);
+  ctx.fillStyle = headOk ? '#4DB6AC' : '#EF4444';
+  ctx.fillText(headText, noseX, noseY - 23);
+
+  // Shoulder label
+  if (!shOk) {
+    const shText = '⚠ Uneven Shoulders';
+    const shMetric = ctx.measureText(shText);
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(shCX - shMetric.width/2 - 6, Math.min(shLY, shRY) - 30, shMetric.width + 12, 22);
+    ctx.fillStyle = '#EF6C00';
+    ctx.fillText(shText, shCX, Math.min(shLY, shRY) - 13);
+  }
+
+  // Slouch label
+  if (!slouchOk) {
+    const slText = '⚠ Slouching';
+    const slMetric = ctx.measureText(slText);
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(shCX + 60, shCY - 22, slMetric.width + 12, 22);
+    ctx.fillStyle = '#EF4444';
+    ctx.fillText(slText, shCX + 66 + slMetric.width/2, shCY - 5);
   }
 }
 
-// ===== CORE POSTURE ANALYSIS =====
+// ══════════════════════════════════════════════════════════
+// POSTURE ANALYSIS — REWRITTEN FOR FRONT-FACING CAMERA
+// All checks use RELATIVE measurements from baseline
+// No hip dependency for upper body checks
+// ══════════════════════════════════════════════════════════
 function analyzePosture(lm) {
   const now = Date.now();
   const ts = now / 1000;
 
-  // Key landmarks
-  const nose = lm[0];
-  const earL = lm[7], earR = lm[8];
+  const nose = lm[0], earL = lm[7], earR = lm[8];
   const shL = lm[11], shR = lm[12];
   const hipL = lm[23], hipR = lm[24];
-  const knL = lm[25], knR = lm[26];
-  const anL = lm[27], anR = lm[28];
+  const knL = lm[25], anL = lm[27];
 
-  // Check minimum visibility
-  if (shL.visibility < 0.4 || shR.visibility < 0.4) return;
+  if (shL.visibility < 0.35 || shR.visibility < 0.35) return;
+  const noseVis = nose.visibility > 0.35;
+  const earLVis = earL.visibility > 0.25;
+  const earRVis = earR.visibility > 0.25;
+  const hipsVis = hipL.visibility > 0.3 && hipR.visibility > 0.3;
 
-  // Derived midpoints
-  const earMidY = (earL.visibility > 0.3 && earR.visibility > 0.3) ? (earL.y + earR.y) / 2 : null;
-  const earMidX = (earL.visibility > 0.3 && earR.visibility > 0.3) ? (earL.x + earR.x) / 2 : null;
   const shMidY = (shL.y + shR.y) / 2;
   const shMidX = (shL.x + shR.x) / 2;
-  const hipMidY = (hipL.visibility > 0.3 && hipR.visibility > 0.3) ? (hipL.y + hipR.y) / 2 : null;
-  const hipMidX = (hipL.visibility > 0.3 && hipR.visibility > 0.3) ? (hipL.x + hipR.x) / 2 : null;
+  // Shoulder width in normalized coords (used to normalize other measurements)
+  const shWidth = Math.abs(shL.x - shR.x);
 
-  // ── 1. DETECT SITTING vs STANDING ──
-  let detectedMode = 'unknown';
-  if (hipL.visibility > 0.4 && knL.visibility > 0.4 && anL.visibility > 0.4) {
-    const hipKneeAngle = calcPostureAngle(lm, 23, 25, 27);
-    if (hipKneeAngle !== null) {
-      if (hipKneeAngle < 120) detectedMode = 'sitting';
-      else if (hipKneeAngle > 150) detectedMode = 'standing';
-      else detectedMode = 'transition';
-    }
-  } else if (hipMidY !== null && shMidY) {
-    // Legs not visible — estimate from hip-shoulder ratio
-    // If hips are in lower third of frame and shoulders in upper, likely sitting
-    detectedMode = hipMidY > 0.65 ? 'sitting' : 'standing';
+  // ── DETECT MODE ──
+  let detectedMode = 'sitting'; // default when only upper body visible
+  if (hipsVis && knL.visibility > 0.4 && anL.visibility > 0.4) {
+    const hipAngle = calcPostureAngle(lm, 23, 25, 27);
+    if (hipAngle !== null) detectedMode = hipAngle < 120 ? 'sitting' : hipAngle > 150 ? 'standing' : 'sitting';
   }
-
   postureState.mode = detectedMode;
   const modeEl = document.getElementById('postureMode');
-  if (modeEl) modeEl.textContent = detectedMode === 'sitting' ? '🪑 SITTING' : detectedMode === 'standing' ? '🧍 STANDING' : 'ANALYZING';
+  if (modeEl) modeEl.textContent = detectedMode === 'sitting' ? '🪑 SITTING' : '🧍 STANDING';
 
-  // ── Baseline capture (first 20 frames) ──
+  // ── BASELINE ──
   if (!postureState.baselineSet) {
     postureState.baselineFrames++;
-    if (postureState.baselineFrames > 20) {
+    if (postureState.baselineFrames >= 25) {
       postureState.baselineSet = true;
-      postureState.baselineShoulderY = shMidY;
-      postureState.baselineEarY = earMidY || shMidY - 0.05;
+      postureState.bl = {
+        noseY: noseVis ? nose.y : shMidY - 0.1,
+        noseX: noseVis ? nose.x : shMidX,
+        shMidY: shMidY,
+        shMidX: shMidX,
+        shWidth: shWidth,
+        // Nose-to-shoulder Y gap (normalized by shoulder width)
+        noseShGap: noseVis ? (shMidY - nose.y) / Math.max(shWidth, 0.05) : 1.0,
+        // Ear-to-shoulder Y gap
+        earShGap: earLVis ? (shMidY - earL.y) / Math.max(shWidth, 0.05) : 0.5,
+      };
       setPostureCoach('Baseline captured! Monitoring your posture now...');
-      speak('Baseline captured. I\'m now monitoring your posture.');
+      speak('Baseline captured. Monitoring your posture.');
     } else {
-      setPostureCoach(`Capturing baseline... (${Math.round(postureState.baselineFrames / 20 * 100)}%)`);
+      setPostureCoach(`Sit or stand naturally... (${Math.round(postureState.baselineFrames / 25 * 100)}%)`);
       return;
     }
   }
 
+  const bl = postureState.bl;
   let issues = [];
 
-  // ── 2. HEAD / NECK ALIGNMENT ──
-  // Angle: Ear → Shoulder → Hip (should be 165-180°)
-  let headAngle = null;
-  if (earMidX !== null && earMidY !== null && hipMidX !== null && hipMidY !== null) {
-    // Use left side for angle (ear=7, shoulder=11, hip=23)
-    headAngle = calcPostureAngle(lm, 7, 11, 23);
-    if (headAngle === null && earR.visibility > 0.3) {
-      headAngle = calcPostureAngle(lm, 8, 12, 24);
-    }
-  }
+  // ══════════════════════════════════════════════
+  // 1. HEAD / NECK (front-facing camera)
+  // METRIC: How much has nose dropped toward shoulders?
+  // In front view: bending neck down = nose.y approaches shMidY
+  // Normalize by shoulder width to be scale-independent
+  // ══════════════════════════════════════════════
+  if (noseVis) {
+    const currentGap = (shMidY - nose.y) / Math.max(shWidth, 0.05);
+    const filtered = getPostureFilter('head').filter(currentGap, ts);
+    // Compare to baseline — how much has the gap shrunk?
+    const gapRatio = filtered / Math.max(bl.noseShGap, 0.1);
 
-  if (headAngle !== null) {
-    const filtered = getPostureFilter('head').filter(headAngle, ts);
-    if (filtered < 155) {
-      postureState.headScore = Math.max(0, Math.round((filtered / 180) * 100));
-      const severity = filtered < 140 ? 'severe' : 'moderate';
+    // ABSOLUTE CHECK: if nose is very close to shoulders regardless of baseline
+    // (handles case where baseline was captured with head already down)
+    const absoluteGapSmall = filtered < 0.35; // nose barely above shoulders
+
+    if (gapRatio < 0.55 || absoluteGapSmall) {
+      postureState.headScore = Math.max(0, Math.round(Math.min(gapRatio, filtered / 0.5) * 100));
       issues.push({
-        id: 'forwardHead',
-        icon: '🔴',
-        title: 'Forward Head Posture',
-        text: 'Your head is leaning forward. Bring your ears back over your shoulders.',
-        severity,
+        id: 'forwardHead', icon: '🔴',
+        title: 'Neck Bending / Head Drop',
+        text: 'Your head is dropping down. Lift your chin and bring ears over shoulders.',
+        severity: (gapRatio < 0.35 || filtered < 0.2) ? 'severe' : 'moderate',
+      });
+    } else if (gapRatio < 0.75) {
+      postureState.headScore = Math.max(40, Math.round(gapRatio * 110));
+      issues.push({
+        id: 'forwardHead', icon: '🟡',
+        title: 'Slight Forward Head',
+        text: 'Your head is drifting forward slightly. Gently pull your chin back.',
+        severity: 'moderate',
       });
     } else {
-      postureState.headScore = Math.min(100, Math.round(90 + (filtered - 155) * 0.4));
+      postureState.headScore = Math.min(100, Math.round(75 + gapRatio * 25));
     }
-    updatePM('pmHead', 'pmHeadVal', postureState.headScore, `${Math.round(filtered)}°`);
+    updatePM('pmHead', 'pmHeadVal', postureState.headScore, `gap:${(filtered * 100).toFixed(0)}% ratio:${(gapRatio * 100).toFixed(0)}%`);
   }
 
-  // ── 3. SHOULDER ALIGNMENT (level check) ──
-  const shDiffY = Math.abs(shL.y - shR.y);
-  const shDiffFiltered = getPostureFilter('shLevel').filter(shDiffY, ts);
-  const shDiffPx = shDiffFiltered * 480; // approximate pixels
-  if (shDiffPx > 12) {
-    postureState.shoulderScore = Math.max(0, Math.round(100 - shDiffPx * 3));
+  // ══════════════════════════════════════════════
+  // 2. SHOULDER LEVEL
+  // CAMERA TILT COMPENSATION: When laptop is angled, everything tilts equally.
+  // Use ear tilt as reference — subtract it from shoulder tilt.
+  // If ears tilt the same way as shoulders by similar amount → camera angle, not posture.
+  // ══════════════════════════════════════════════
+  const shDiffSigned = (shL.y - shR.y) / Math.max(shWidth, 0.05); // signed, normalized
+
+  // Ear tilt = camera tilt reference (ears are naturally level on most people)
+  let cameraTilt = 0;
+  if (earLVis && earRVis) {
+    cameraTilt = (earL.y - earR.y) / Math.max(shWidth, 0.05);
+  } else if (noseVis) {
+    // Estimate camera tilt from nose lateral offset
+    const noseLateral = (nose.x - shMidX) / Math.max(shWidth, 0.05);
+    cameraTilt = noseLateral * 0.3; // rough estimate
+  }
+
+  // Compensated: remove camera tilt from shoulder measurement
+  const compensatedShDiff = Math.abs(shDiffSigned - cameraTilt);
+  const shDiffFiltered = getPostureFilter('shLevel').filter(compensatedShDiff, ts);
+
+  // Threshold 0.28 = fairly generous after compensation
+  if (shDiffFiltered > 0.28) {
+    postureState.shoulderScore = Math.max(0, Math.round(100 - (shDiffFiltered - 0.28) * 300));
+    const higher = (shDiffSigned - cameraTilt) > 0 ? 'right' : 'left';
     issues.push({
-      id: 'unevenShoulders',
-      icon: '🟡',
+      id: 'unevenShoulders', icon: '🟡',
       title: 'Uneven Shoulders',
-      text: 'Your shoulders are uneven. Relax and align them evenly.',
-      severity: shDiffPx > 20 ? 'severe' : 'moderate',
+      text: `Your ${higher} shoulder is higher. Relax and level both shoulders.`,
+      severity: shDiffFiltered > 0.45 ? 'severe' : 'moderate',
     });
   } else {
-    postureState.shoulderScore = Math.min(100, Math.round(90 + (12 - shDiffPx)));
+    postureState.shoulderScore = Math.min(100, Math.round(88 + (0.28 - shDiffFiltered) * 45));
   }
-  updatePM('pmShoulders', 'pmShouldersVal', postureState.shoulderScore, `${shDiffPx.toFixed(1)}px diff`);
+  updatePM('pmShoulders', 'pmShouldersVal', postureState.shoulderScore, `${(shDiffFiltered * 100).toFixed(0)}% comp`);
 
-  // ── 4. SHOULDER ROUNDING / SLOUCHING ──
-  // Angle: Shoulder → Hip → Neck(ear) — should be 160-180°
-  let slouchAngle = null;
-  if (earL.visibility > 0.3 && hipL.visibility > 0.3) {
-    slouchAngle = calcPostureAngle(lm, 11, 23, 7); // shoulder→hip→ear
-  }
-  if (slouchAngle !== null) {
-    const filtered = getPostureFilter('slouch').filter(slouchAngle, ts);
-    if (filtered < 150) {
-      postureState.slouchScore = Math.max(0, Math.round((filtered / 180) * 100));
+  // ══════════════════════════════════════════════
+  // 3. SLOUCHING (front-facing camera)
+  // METRIC: Ear-to-shoulder Y gap shrinks when slouching
+  // (shoulders ride up toward ears as you hunch)
+  // Also: nose drops (head comes forward and down)
+  // ══════════════════════════════════════════════
+  if (earLVis || earRVis) {
+    const earY = earLVis && earRVis ? (earL.y + earR.y) / 2 : (earLVis ? earL.y : earR.y);
+    const earShGap = (shMidY - earY) / Math.max(shWidth, 0.05);
+    const filtered = getPostureFilter('slouch').filter(earShGap, ts);
+    const slouchRatio = filtered / Math.max(bl.earShGap, 0.1);
+
+    // slouchRatio < 0.5 = ears are much closer to shoulders (hunching)
+    if (slouchRatio < 0.5) {
+      postureState.slouchScore = Math.max(0, Math.round(slouchRatio * 130));
       issues.push({
-        id: 'slouching',
-        icon: '🔴',
+        id: 'slouching', icon: '🔴',
         title: 'Slouching Detected',
-        text: 'You\'re slouching. Roll your shoulders back and lift your chest.',
-        severity: filtered < 130 ? 'severe' : 'moderate',
+        text: 'You\'re hunching. Roll shoulders back, lift your chest, and sit tall.',
+        severity: 'severe',
       });
-    } else {
-      postureState.slouchScore = Math.min(100, Math.round(85 + (filtered - 150)));
-    }
-    updatePM('pmSlouch', 'pmSlouchVal', postureState.slouchScore, `${Math.round(filtered)}°`);
-  }
-
-  // ── 5. SPINE POSTURE (Ear-Shoulder-Hip vertical alignment) ──
-  if (earMidX !== null && hipMidX !== null) {
-    // Horizontal displacement between ear and hip (should be near zero)
-    const spineOffset = Math.abs(earMidX - hipMidX);
-    const filteredOffset = getPostureFilter('spine').filter(spineOffset, ts);
-
-    // Also check forward lean angle
-    let spineAngle = null;
-    if (earL.visibility > 0.3) {
-      // Vertical angle of ear-shoulder-hip line
-      const dx = (earMidX - hipMidX);
-      const dy = (earMidY - hipMidY);
-      spineAngle = Math.abs(Math.atan2(dx, dy) * 180 / Math.PI);
-    }
-
-    if (filteredOffset > 0.04 || (spineAngle !== null && spineAngle > 25)) {
-      postureState.spineScore = Math.max(0, Math.round(100 - filteredOffset * 800));
+    } else if (slouchRatio < 0.75) {
+      postureState.slouchScore = Math.max(40, Math.round(slouchRatio * 110));
       issues.push({
-        id: 'spineAlign',
-        icon: '🟠',
-        title: 'Poor Spine Alignment',
-        text: 'Straighten your back. Align your head, shoulders, and hips vertically.',
-        severity: filteredOffset > 0.07 ? 'severe' : 'moderate',
+        id: 'slouching', icon: '🟡',
+        title: 'Slight Slouch',
+        text: 'You\'re starting to slouch. Gently pull shoulders back.',
+        severity: 'moderate',
       });
     } else {
-      postureState.spineScore = Math.min(100, Math.round(90 + (0.04 - filteredOffset) * 250));
+      postureState.slouchScore = Math.min(100, Math.round(75 + slouchRatio * 25));
     }
-    updatePM('pmSpine', 'pmSpineVal', postureState.spineScore, `${(filteredOffset * 100).toFixed(1)}cm offset`);
+    updatePM('pmSlouch', 'pmSlouchVal', postureState.slouchScore, `${(slouchRatio * 100).toFixed(0)}% of baseline`);
+  } else if (noseVis) {
+    // Fallback: use nose position
+    const noseGap = (shMidY - nose.y) / Math.max(shWidth, 0.05);
+    const filtered = getPostureFilter('slouch').filter(noseGap, ts);
+    const ratio = filtered / Math.max(bl.noseShGap, 0.1);
+    postureState.slouchScore = ratio < 0.6 ? Math.round(ratio * 120) : Math.min(100, Math.round(80 + ratio * 20));
+    if (ratio < 0.6) {
+      issues.push({ id: 'slouching', icon: '🟡', title: 'Possible Slouching', text: 'Your posture seems to be dropping. Sit up straighter.', severity: 'moderate' });
+    }
+    updatePM('pmSlouch', 'pmSlouchVal', postureState.slouchScore, `${(ratio * 100).toFixed(0)}% (est)`);
   }
 
-  // ── 6. HIP POSITION (Sitting-specific) ──
-  if (detectedMode === 'sitting' && hipMidX !== null) {
-    const hipShoulderOffset = Math.abs(shMidX - hipMidX);
-    const filteredHip = getPostureFilter('hip').filter(hipShoulderOffset, ts);
+  // ══════════════════════════════════════════════
+  // 4. SPINE / LATERAL TILT (front-facing camera)
+  // METRIC: Is head centered between shoulders? (left-right tilt)
+  // ══════════════════════════════════════════════
+  if (noseVis) {
+    const lateralOffset = Math.abs(nose.x - shMidX) / Math.max(shWidth, 0.05);
+    const filtered = getPostureFilter('spine').filter(lateralOffset, ts);
 
-    if (filteredHip > 0.035) {
-      postureState.hipScore = Math.max(0, Math.round(100 - filteredHip * 1000));
+    if (filtered > 0.2) {
+      postureState.spineScore = Math.max(0, Math.round(100 - filtered * 250));
+      const dir = nose.x < shMidX ? 'right' : 'left'; // mirrored
       issues.push({
-        id: 'hipForward',
-        icon: '🟡',
-        title: 'Hip Position',
-        text: 'Sit upright and avoid leaning forward. Hips should be under shoulders.',
-        severity: filteredHip > 0.06 ? 'severe' : 'moderate',
+        id: 'spineTilt', icon: '🟠',
+        title: 'Head/Spine Tilt',
+        text: `You're tilting ${dir}. Center your head over your shoulders.`,
+        severity: filtered > 0.35 ? 'severe' : 'moderate',
       });
     } else {
-      postureState.hipScore = Math.min(100, Math.round(90 + (0.035 - filteredHip) * 280));
+      postureState.spineScore = Math.min(100, Math.round(85 + (0.2 - filtered) * 75));
     }
-    updatePM('pmHip', 'pmHipVal', postureState.hipScore, detectedMode === 'sitting' ? `${(filteredHip * 100).toFixed(1)}cm lean` : 'N/A');
-  } else if (detectedMode === 'standing') {
-    // Standing: check ear→shoulder→hip→knee→ankle alignment
-    postureState.hipScore = 90; // default good if standing
-    if (hipL.visibility > 0.4 && knL.visibility > 0.4 && anL.visibility > 0.4) {
-      const standAngle = calcPostureAngle(lm, 11, 23, 27);
-      if (standAngle !== null && standAngle < 165) {
-        postureState.hipScore = Math.max(0, Math.round((standAngle / 180) * 100));
-        issues.push({
-          id: 'standLean',
-          icon: '🟡',
-          title: 'Forward Lean',
-          text: 'Stand tall. Align your hips over your ankles.',
-          severity: 'moderate',
-        });
-      }
-    }
-    updatePM('pmHip', 'pmHipVal', postureState.hipScore, detectedMode);
+    updatePM('pmSpine', 'pmSpineVal', postureState.spineScore, `${(filtered * 100).toFixed(1)}% tilt`);
   }
 
-  // ── OVERALL SCORE ──
-  const scores = [postureState.headScore, postureState.shoulderScore, postureState.slouchScore, postureState.spineScore, postureState.hipScore];
+  // ══════════════════════════════════════════════
+  // 5. HIP POSITION
+  // ══════════════════════════════════════════════
+  if (hipsVis) {
+    const hipMidX = (hipL.x + hipR.x) / 2;
+    const hipShOffset = Math.abs(shMidX - hipMidX) / Math.max(shWidth, 0.05);
+    const filtered = getPostureFilter('hip').filter(hipShOffset, ts);
+    if (filtered > 0.2) {
+      postureState.hipScore = Math.max(0, Math.round(100 - filtered * 300));
+      issues.push({ id: 'hipLean', icon: '🟡', title: 'Hip Misalignment', text: 'Sit upright. Align hips under shoulders.', severity: 'moderate' });
+    } else {
+      postureState.hipScore = Math.min(100, Math.round(85 + (0.2 - filtered) * 75));
+    }
+    updatePM('pmHip', 'pmHipVal', postureState.hipScore, `${(filtered * 100).toFixed(1)}% offset`);
+  } else {
+    postureState.hipScore = Math.round((postureState.spineScore + postureState.slouchScore) / 2);
+    updatePM('pmHip', 'pmHipVal', postureState.hipScore, 'est. (hips hidden)');
+  }
+
+  // ══════════════════════════════════════════════
+  // 6. SCREEN DISTANCE (seated analysis)
+  // Estimate how far the user is from the screen using face/shoulder proportions
+  // Ideal desk distance: 50-70cm (arm's length)
+  // ══════════════════════════════════════════════
+  if (noseVis && shL.visibility > 0.35 && shR.visibility > 0.35) {
+    // Face-to-shoulder ratio gives approximate distance
+    // Wider shoulders in frame = closer to camera
+    // Use inter-shoulder distance as % of frame width
+    const shWidthPx = shWidth; // normalized 0-1
+    const filteredShW = getPostureFilter('screenDist').filter(shWidthPx, ts);
+
+    // Calibration: at ~60cm, shoulders typically span 35-45% of frame width
+    // At ~30cm (too close), shoulders span 60%+
+    // At ~100cm (too far), shoulders span <25%
+    const estDistCm = filteredShW > 0.01 ? Math.round(22 / filteredShW) : 0;
+
+    if (estDistCm > 0 && estDistCm < 35) {
+      postureState.screenScore = Math.max(0, Math.round(estDistCm * 2));
+      issues.push({
+        id: 'tooClose', icon: '🔴',
+        title: 'Too Close to Screen',
+        text: `You\'re ~${estDistCm}cm from screen. Move back to arm\'s length (~60cm) to reduce eye strain.`,
+        severity: 'severe',
+      });
+    } else if (estDistCm > 0 && estDistCm < 45) {
+      postureState.screenScore = Math.max(50, Math.round(50 + (estDistCm - 35)));
+      issues.push({
+        id: 'tooClose', icon: '🟡',
+        title: 'Slightly Close',
+        text: `You\'re ~${estDistCm}cm from screen. Ideal is 50-70cm.`,
+        severity: 'moderate',
+      });
+    } else if (estDistCm > 90) {
+      postureState.screenScore = Math.max(50, Math.round(100 - (estDistCm - 90)));
+      issues.push({
+        id: 'tooFar', icon: '🟡',
+        title: 'Far from Screen',
+        text: `You\'re ~${estDistCm}cm away. Move closer if you\'re straining to read.`,
+        severity: 'moderate',
+      });
+    } else {
+      postureState.screenScore = Math.min(100, 85 + Math.round(Math.abs(60 - estDistCm) < 10 ? 15 : 5));
+    }
+    updatePM('pmScreen', 'pmScreenVal', postureState.screenScore, `~${estDistCm}cm (ideal: 50-70cm)`);
+    postureState.estScreenDist = estDistCm;
+  }
+
+  // ── OVERALL SCORE (6 dimensions) ──
+  const scores = [postureState.headScore, postureState.shoulderScore, postureState.slouchScore, postureState.spineScore, postureState.hipScore, postureState.screenScore];
   postureState.overallScore = Math.round(scores.reduce((s, v) => s + v, 0) / scores.length);
   updatePM('pmOverall', 'pmOverallVal', postureState.overallScore, issues.length === 0 ? 'Great posture!' : `${issues.length} issue${issues.length > 1 ? 's' : ''}`);
+
+  // ── SCORING BREAKDOWN (Excellent / Moderate / Risk) ──
+  let excellentCount = 0, moderateCount = 0, riskCount = 0;
+  scores.forEach(s => {
+    if (s >= 75) excellentCount++;
+    else if (s >= 50) moderateCount++;
+    else riskCount++;
+  });
+  const total = scores.length;
+  const exPct = Math.round(excellentCount / total * 100);
+  const modPct = Math.round(moderateCount / total * 100);
+  const riskPct = Math.round(riskCount / total * 100);
+
+  const pbEx = document.getElementById('pbExcellent');
+  if (pbEx) {
+    pbEx.style.width = exPct + '%';
+    // Add moderate and risk bars dynamically
+    pbEx.parentElement.innerHTML = `<div class="pb-fill pb-excellent" style="width:${exPct}%"></div><div class="pb-fill pb-moderate" style="width:${modPct}%"></div><div class="pb-fill pb-risk" style="width:${riskPct}%"></div>`;
+  }
+  const exLbl = document.getElementById('pbExcellentLbl');
+  const modLbl = document.getElementById('pbModerateLbl');
+  const riskLbl = document.getElementById('pbRiskLbl');
+  if (exLbl) exLbl.textContent = `${excellentCount}/${total}`;
+  if (modLbl) modLbl.textContent = `${moderateCount}/${total}`;
+  if (riskLbl) riskLbl.textContent = `${riskCount}/${total}`;
 
   // Score ring
   const ring = document.getElementById('postureScoreRing');
   const val = document.getElementById('postureScoreVal');
   if (ring && val) {
     val.textContent = postureState.overallScore + '%';
-    ring.className = 'posture-score-ring ' + (postureState.overallScore >= 80 ? 'good' : postureState.overallScore >= 55 ? 'fair' : 'poor');
+    ring.className = 'posture-score-ring ' + (postureState.overallScore >= 75 ? 'good' : postureState.overallScore >= 50 ? 'fair' : 'poor');
   }
 
-  // Score history chart
+  // Score history
   postureState.scoreHistory.push(postureState.overallScore);
   if (postureState.scoreHistory.length > 120) postureState.scoreHistory.shift();
   drawPostureChart();
@@ -2267,36 +3092,139 @@ function analyzePosture(lm) {
     }
   }
 
-  // ── VOICE FEEDBACK (max every 5s) ──
-  if (issues.length > 0 && now - postureState.lastSpokenTime > 5000) {
-    // Pick most severe issue, escalate if persistent
+  // ── VOICE FEEDBACK ──
+  if (issues.length > 0 && postureState.overallScore < 70 && now - postureState.lastFeedbackTime > 6000) {
     const severe = issues.find(i => i.severity === 'severe') || issues[0];
     postureState.issueCounters[severe.id] = (postureState.issueCounters[severe.id] || 0) + 1;
-
     const count = postureState.issueCounters[severe.id];
     let msg = severe.text;
-    if (count > 10) msg = `Please correct your posture. ${severe.text}`;
-    else if (count > 5) msg = `I\'m still noticing: ${severe.text}`;
-
+    if (count > 15) msg = `Please correct now: ${severe.text}`;
+    else if (count > 8) msg = `Still noticing: ${severe.text}`;
     setPostureCoach(msg);
-    if (now - postureState.lastSpokenTime > 8000) { // speak less often than text
+    if (now - postureState.lastSpokenTime > 10000) {
       speak(msg);
       postureState.lastSpokenTime = now;
     }
     postureState.lastFeedbackTime = now;
-  } else if (issues.length === 0 && now - postureState.lastFeedbackTime > 10000) {
-    setPostureCoach('Great posture! Keep maintaining this position.');
+  } else if (issues.length === 0 && now - postureState.lastFeedbackTime > 15000) {
+    setPostureCoach('Great posture! Keep maintaining this alignment.');
     postureState.lastFeedbackTime = now;
-    // Reset issue counters when posture is good
     postureState.issueCounters = {};
+  } else if (issues.length > 0 && postureState.overallScore >= 70 && now - postureState.lastFeedbackTime > 10000) {
+    setPostureCoach(`Minor: ${issues[0].text}`);
+    postureState.lastFeedbackTime = now;
   }
 }
 
 function updatePM(iconId, valId, score, text) {
   const icon = document.getElementById(iconId);
   const val = document.getElementById(valId);
-  if (icon) icon.textContent = score >= 80 ? '🟢' : score >= 55 ? '🟡' : '🔴';
+  if (icon) icon.textContent = score >= 75 ? '🟢' : score >= 50 ? '🟡' : '🔴';
   if (val) val.textContent = `${score}% — ${text}`;
+
+  // Update grade badge
+  const gradeId = iconId.replace('pm', 'pm') + 'Grade';
+  const gradeEl = document.getElementById(gradeId);
+  if (gradeEl) {
+    let grade, cls;
+    if (score >= 85) { grade = 'Excellent'; cls = 'excellent'; }
+    else if (score >= 70) { grade = 'Good'; cls = 'good'; }
+    else if (score >= 50) { grade = 'Moderate'; cls = 'moderate'; }
+    else { grade = 'At Risk'; cls = 'risk'; }
+    gradeEl.textContent = grade;
+    gradeEl.className = 'pm-grade ' + cls;
+  }
+}
+
+// ===== POSTURE SESSION HISTORY =====
+function savePostureSession() {
+  if (!postureState.startTime) return;
+  const duration = Math.round((Date.now() - postureState.startTime) / 1000);
+  if (duration < 10) return; // don't save very short sessions
+
+  const session = {
+    date: new Date().toISOString(),
+    duration: duration,
+    overall: postureState.overallScore,
+    head: postureState.headScore,
+    shoulders: postureState.shoulderScore,
+    slouch: postureState.slouchScore,
+    spine: postureState.spineScore,
+    hip: postureState.hipScore,
+    screen: postureState.screenScore || 0,
+    mode: postureState.mode,
+    avgHistory: postureState.scoreHistory.length > 0
+      ? Math.round(postureState.scoreHistory.reduce((s,v)=>s+v,0) / postureState.scoreHistory.length)
+      : 0,
+  };
+
+  try {
+    let history = JSON.parse(localStorage.getItem('postureHistory') || '[]');
+    history.push(session);
+    if (history.length > 50) history = history.slice(-50); // keep last 50
+    localStorage.setItem('postureHistory', JSON.stringify(history));
+  } catch(e) { console.log('Could not save posture history:', e); }
+}
+
+function loadPostureHistory() {
+  try {
+    const history = JSON.parse(localStorage.getItem('postureHistory') || '[]');
+    const listEl = document.getElementById('psSessionList');
+    const compEl = document.getElementById('psComparison');
+    if (!listEl) return;
+
+    if (history.length === 0) {
+      listEl.innerHTML = '<div style="font-size:11px;color:rgba(255,255,255,0.3);padding:4px 0">No past sessions yet</div>';
+      if (compEl) { compEl.className = 'ps-comparison'; compEl.innerHTML = ''; }
+      return;
+    }
+
+    // Show last 5 sessions
+    const recent = history.slice(-5).reverse();
+    listEl.innerHTML = recent.map((s, i) => {
+      const d = new Date(s.date);
+      const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      const durMin = Math.floor(s.duration / 60);
+      const durSec = s.duration % 60;
+
+      // Compare to previous session
+      let trend = '';
+      const prevIdx = history.length - 1 - i - 1;
+      if (prevIdx >= 0) {
+        const diff = s.overall - history[prevIdx].overall;
+        if (diff > 3) trend = `<span class="ps-score up">↑${diff}</span>`;
+        else if (diff < -3) trend = `<span class="ps-score down">↓${Math.abs(diff)}</span>`;
+        else trend = `<span class="ps-score same">→</span>`;
+      }
+
+      return `<div class="ps-row">
+        <span class="ps-date">${dateStr} ${timeStr}</span>
+        <span>${durMin}m${durSec.toString().padStart(2,'0')}s</span>
+        <span class="ps-score" style="color:${s.overall >= 75 ? '#4CAF50' : s.overall >= 50 ? '#FF9800' : '#EF5350'}">${s.overall}%</span>
+        ${trend}
+      </div>`;
+    }).join('');
+
+    // Historical comparison
+    if (compEl && history.length >= 2) {
+      const latest = history[history.length - 1];
+      const prev = history[history.length - 2];
+      const diff = latest.overall - prev.overall;
+      const allAvg = Math.round(history.reduce((s,h)=>s+h.overall,0) / history.length);
+
+      if (diff > 5) {
+        compEl.className = 'ps-comparison improved';
+        compEl.innerHTML = `📈 <strong>Improving!</strong> Your posture score improved by ${diff} points since last session. All-time average: ${allAvg}%.`;
+      } else if (diff < -5) {
+        compEl.className = 'ps-comparison declined';
+        compEl.innerHTML = `📉 <strong>Declining.</strong> Your score dropped ${Math.abs(diff)} points. Focus on ${latest.head < latest.shoulders ? 'head/neck alignment' : latest.slouch < latest.spine ? 'reducing slouching' : 'overall alignment'}. Avg: ${allAvg}%.`;
+      } else {
+        compEl.className = 'ps-comparison same';
+        compEl.innerHTML = `➡️ <strong>Consistent.</strong> Your posture is stable (${diff >= 0 ? '+' : ''}${diff} pts). All-time average: ${allAvg}%.`;
+      }
+    }
+  } catch(e) { console.log('Could not load posture history:', e); }
 }
 
 function drawPostureChart() {
